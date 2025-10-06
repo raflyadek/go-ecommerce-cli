@@ -6,3 +6,6 @@ cli application build with go
 test yaya
 satu
 dua
+
+
+test yaya
