@@ -1,13 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"go-ecommerce-cli/config"
 )
 
-func worker() {
-
-}
-
 func main() {
-
+	db := config.ConnectDB()
+	defer db.Close()
 }
