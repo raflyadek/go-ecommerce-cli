@@ -166,7 +166,11 @@ func (h *UserHandler) ShowDashboard(role string) {
 			case 1:
 				fmt.Println("Admin: Manage Orders")
 			case 2:
-				h.showReportMenu()
+				orderRepo := repository.NewOrderRepo(h.DB)
+				dashboardHandler := &DashboardHandler{
+					OrderRepo: orderRepo,
+				}
+				dashboardHandler.showReportMenu()
 			case 3:
 				h.AddStaff()
 			case 4:
@@ -180,7 +184,11 @@ func (h *UserHandler) ShowDashboard(role string) {
 			case 1:
 				fmt.Println("Staff: Manage Orders")
 			case 2:
-				h.showReportMenu()
+				orderRepo := repository.NewOrderRepo(h.DB)
+				dashboardHandler := &DashboardHandler{
+					OrderRepo: orderRepo,
+				}
+				dashboardHandler.showReportMenu()
 			case 3:
 				fmt.Println("Logging out...")
 				return
@@ -197,44 +205,6 @@ func (h *UserHandler) ShowDashboard(role string) {
 				fmt.Println("Logging out...")
 				return
 			}
-		}
-	}
-}
-
-func (h *UserHandler) showReportMenu() {
-	for {
-		reportMenu := []string{
-			"User Report",
-			"Order Report",
-			"Stock Report",
-			"Back to Dashboard",
-		}
-
-		prompt := promptui.Select{
-			Label: "Report Menu",
-			Items: reportMenu,
-		}
-
-		i, _, err := prompt.Run()
-		if err != nil {
-			return
-		}
-
-		switch i {
-		case 0:
-			fmt.Println("User Report functionality - belum diimplementasi")
-			fmt.Print("\nPress ENTER to continue...")
-			fmt.Scanln()
-		case 1:
-			orderRepo := repository.NewOrderRepo(h.DB)
-			orderHandler := NewOrderHandler(orderRepo)
-			orderHandler.ShowCompletedOrders()
-		case 2:
-			fmt.Println("Stock Report functionality - belum diimplementasi")
-			fmt.Print("\nPress ENTER to continue...")
-			fmt.Scanln()
-		case 3:
-			return
 		}
 	}
 }

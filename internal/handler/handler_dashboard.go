@@ -9,7 +9,7 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-type DashboardHandler struct{
+type DashboardHandler struct {
 	OrderRepo repository.OrderRepository
 }
 
@@ -72,7 +72,7 @@ func (h *DashboardHandler) showReportMenu() {
 		}
 
 		prompt := promptui.Select{
-			Label: "Report Menu",
+			Label: "Select option",
 			Items: reportMenu,
 		}
 
@@ -81,18 +81,17 @@ func (h *DashboardHandler) showReportMenu() {
 			return
 		}
 
+		fmt.Println("\n===== Report Menu =====")
 		switch i {
 		case 0:
-			fmt.Println("User Report functionality - belum diimplementasi")
-			fmt.Print("\nPress ENTER to continue...")
-			fmt.Scanln()
+			orderHandler := NewOrderHandler(h.OrderRepo)
+			orderHandler.ShowUserReport()
 		case 1:
 			orderHandler := NewOrderHandler(h.OrderRepo)
 			orderHandler.ShowCompletedOrders()
 		case 2:
-			fmt.Println("Stock Report functionality - belum diimplementasi")
-			fmt.Print("\nPress ENTER to continue...")
-			fmt.Scanln()
+			orderHandler := NewOrderHandler(h.OrderRepo)
+			orderHandler.ShowStockReport()
 		case 3:
 			return
 		}
