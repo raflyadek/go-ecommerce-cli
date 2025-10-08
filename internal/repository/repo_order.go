@@ -6,12 +6,9 @@ import (
 	"go-ecommerce-cli/internal/entity"
 )
 
-// OrderRepository: Kontrak untuk akses data Order
 type OrderRepository interface {
 	FindCompletedOrders() ([]entity.Order, error)
 }
-
-// ProductRepository: menunggu Interface di product repo di buat.
 
 type OrderRepo struct {
 	DB *sql.DB
@@ -24,15 +21,16 @@ func NewOrderRepo(db *sql.DB) *OrderRepo {
 func (r *OrderRepo) FindCompletedOrders() ([]entity.Order, error) {
 	query := `
 		SELECT 
-			o.id, 
-			u.name AS customer_name, 
-			o.total_amount, 
-			o.status, 
-			o.completed_at
+			o.id,
+			u.name AS customer_name,
+			o.total_amount,
+			s.status_name,
+			o.updated_at AS completed_date
 		FROM orders o
-		JOIN users u ON o.user_id = u.id -- Asumsi tabel users ada
-		WHERE o.status = 'Completed'
-		ORDER BY o.completed_at DESC
+		JOIN users u ON o.user_id = u.id
+		JOIN status_order s ON o.status_id = s.id
+		WHERE s.status_name = 'completed'
+		ORDER BY o.updated_at DESC
 	`
 
 	rows, err := r.DB.Query(query)
@@ -50,7 +48,7 @@ func (r *OrderRepo) FindCompletedOrders() ([]entity.Order, error) {
 			&order.ID,
 			&order.CustomerName,
 			&order.TotalAmount,
-			&order.Status,
+			&order.StatusName,
 			&completedAt,
 		)
 		if err != nil {
@@ -64,5 +62,9 @@ func (r *OrderRepo) FindCompletedOrders() ([]entity.Order, error) {
 		orders = append(orders, order)
 	}
 
-	return orders, rows.Err()
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return orders, nil
 }

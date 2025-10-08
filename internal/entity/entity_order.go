@@ -8,7 +8,7 @@ type Order struct {
 	ID            int
 	UserID        int
 	TotalAmount   int
-	Status        string
+	StatusName    string
 	CompletedDate time.Time
 
 	CustomerName string

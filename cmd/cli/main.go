@@ -19,7 +19,7 @@ func waitEnter() {
 
 func LoginCLI(db *sql.DB) {
 	userRepo := repository.NewUserRepository(db)
-	userHandler := handler.NewUserHandler(userRepo)
+	userHandler := handler.NewUserHandler(userRepo, db)
 	productRepo := repository.NewProductRepository(db)
 	productHandler := handler.NewProductHandler(productRepo)
 	productHandler.ShowAllProducts()

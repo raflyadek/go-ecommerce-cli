@@ -3,12 +3,15 @@ package handler
 import (
 	"fmt"
 	"go-ecommerce-cli/internal/entity"
+	"go-ecommerce-cli/internal/repository"
 	"strings"
 
 	"github.com/manifoldco/promptui"
 )
 
-type DashboardHandler struct{}
+type DashboardHandler struct{
+	OrderRepo repository.OrderRepository
+}
 
 func (h *DashboardHandler) ShowDashboard(user *entity.User) {
 	for {
@@ -59,6 +62,43 @@ func (h *DashboardHandler) ShowDashboard(user *entity.User) {
 	}
 }
 
+func (h *DashboardHandler) showReportMenu() {
+	for {
+		reportMenu := []string{
+			"User Report",
+			"Order Report",
+			"Stock Report",
+			"Back to Dashboard",
+		}
+
+		prompt := promptui.Select{
+			Label: "Report Menu",
+			Items: reportMenu,
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			return
+		}
+
+		switch i {
+		case 0:
+			fmt.Println("User Report functionality - belum diimplementasi")
+			fmt.Print("\nPress ENTER to continue...")
+			fmt.Scanln()
+		case 1:
+			orderHandler := NewOrderHandler(h.OrderRepo)
+			orderHandler.ShowCompletedOrders()
+		case 2:
+			fmt.Println("Stock Report functionality - belum diimplementasi")
+			fmt.Print("\nPress ENTER to continue...")
+			fmt.Scanln()
+		case 3:
+			return
+		}
+	}
+}
+
 func (h *DashboardHandler) handleChoice(user *entity.User, choice string) bool {
 	switch user.RoleName {
 	case "admin":
@@ -80,7 +120,7 @@ func (h *DashboardHandler) handleAdminMenu(choice string) bool {
 	case "2":
 		fmt.Println("Managing orders...")
 	case "3":
-		fmt.Println("Opening report menu...")
+		h.showReportMenu()
 	case "4":
 		fmt.Println("Adding staff...")
 	case "5":
@@ -99,7 +139,7 @@ func (h *DashboardHandler) handleStaffMenu(choice string) bool {
 	case "2":
 		fmt.Println("Managing orders...")
 	case "3":
-		fmt.Println("Opening report menu...")
+		h.showReportMenu()
 	case "4":
 		fmt.Println("Logged out.")
 		return true
