@@ -187,12 +187,11 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 3:
 				fmt.Println("Logging out...")
 				return
+			default:
+				fmt.Println("Invalid role.")
+				return
 			}
 		}
 		// ERROR: default case salah tempat, harusnya di dalam switch role
-		default:
-			fmt.Println("Invalid role.")
-			return
-		}
 	}
 }

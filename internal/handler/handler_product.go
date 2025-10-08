@@ -16,6 +16,8 @@ func NewProductHandler(repo *repository.ProductRepository) *ProductHandler {
 	return &ProductHandler{ProductRepo: repo}
 }
 
+
+
 func (h *ProductHandler) ShowAllProducts() {
 	products, err := h.ProductRepo.GetAll()
 	if err != nil {

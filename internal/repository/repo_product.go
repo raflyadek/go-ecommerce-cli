@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"go-ecommerce-cli/internal/entity"
+	"log"
 )
 
 type ProductRepository struct {
@@ -34,3 +35,18 @@ func (r *ProductRepository) GetAll() ([]entity.Product, error) {
 
 	return products, nil
 }
+
+func (r *ProductRepository) AddProduct(name, description string, price, stock int) error {
+	_, err := r.DB.Exec(`
+		INSERT INTO products (name, description, price, stock)
+		VALUES ($1, $2, $3, $4)
+	`, name, description, price, stock)
+
+	if err != nil {
+		log.Println("Failed to add product", err)
+		return err
+	}
+	return err
+}
+
+
