@@ -30,6 +30,6 @@ func ConnectDB() *sql.DB {
 		log.Fatal("Database ping failed:", err)
 	}
 
-	log.Println("✅ Successfully connected to Supabase!")
+	log.Println("Successfully connected to Supabase!")
 	return db
 }
