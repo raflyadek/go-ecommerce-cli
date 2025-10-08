@@ -12,6 +12,7 @@ type Order struct {
 	CompletedDate time.Time
 
 	CustomerName string
+	StatusName string
 	Items        []OrderItem
 }
 
