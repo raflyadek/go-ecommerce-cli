@@ -1,61 +1,91 @@
-package repository
+package handler
 
 import (
-	"database/sql"
 	"fmt"
-	"go-ecommerce-cli/internal/entity"
+	"go-ecommerce-cli/internal/repository"
+
+	"github.com/manifoldco/promptui"
 )
 
-type OrderRepository interface {
-	FindCompletedOrders() ([]entity.Order, error)
+type ReportHandler struct {
+	OrderRepo repository.OrderRepository
 }
 
-type OrderRepo struct {
-	DB *sql.DB
-}
-
-func NewOrderRepo(db *sql.DB) *OrderRepo {
-	return &OrderRepo{DB: db}
-}
-
-func (r *OrderRepo) FindCompletedOrders() ([]entity.Order, error) {
-
-	query := `
-		SELECT 
-			o.id, 
-			u.name AS customer_name, 
-			o.total_amount, 
-			s.status_name, 
-			o.order_date -- Menggunakan order_date sebagai CompletedDate
-		FROM orders o
-		JOIN users u ON o.user_id = u.id
-		JOIN status_order s ON o.status_id = s.id
-		WHERE s.status_name = 'Completed' -- Filter Status
-		ORDER BY o.order_date DESC
-	`
-
-	rows, err := r.DB.Query(query)
-	if err != nil {
-		return nil, fmt.Errorf("error querying completed orders: %w", err)
+func NewReportHandler(orderRepo repository.OrderRepository) *ReportHandler {
+	return &ReportHandler{
+		OrderRepo: orderRepo,
 	}
-	defer rows.Close()
+}
 
-	var orders []entity.Order
-	for rows.Next() {
-		var order entity.Order
-		err := rows.Scan(
-			&order.ID,
-			&order.CustomerName,
-			&order.TotalAmount,
-			&order.StatusName,
-			&order.CompletedDate,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("error scanning order row: %w", err)
+func (h *ReportHandler) ShowReportMenu() {
+	menu := []string{
+		"Order Report (Completed Orders)",
+		"Back to Dashboard",
+	}
+
+	for {
+
+		prompt := promptui.Select{
+			Label: "=== Report Menu (Minimal) ===",
+			Items: menu,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . | bold }}",
+				Active:   " {{ . | cyan | bold }}",
+				Inactive: "  {{ . | white }}",
+				Selected: " {{ . | green | bold }}",
+			},
 		}
 
-		orders = append(orders, order)
+		i, _, err := prompt.Run()
+		if err != nil {
+			fmt.Println("Prompt failed:", err)
+			return
+		}
+
+		switch i {
+		case 0:
+			h.PrintCompletedOrderReport()
+		case 1:
+			return
+		}
+	}
+}
+
+func (h *ReportHandler) PrintCompletedOrderReport() {
+	orders, err := h.OrderRepo.FindCompletedOrders()
+	if err != nil {
+		fmt.Println("Error retrieving completed orders:", err)
+		return
 	}
 
-	return orders, rows.Err()
+	fmt.Println("\n--- Order Report (Completed Orders) --- (Ctrl + C to return to dashboard)")
+
+	fmt.Println("|---------|----------|------------|----------|----------------|")
+	fmt.Printf("| %-7s | %-8s | %-10s | %-8s | %-14s |\n", "Order ID", "Customer", "Total (Rp)", "Status", "Order Date")
+	fmt.Println("|---------|----------|------------|----------|----------------|")
+
+	totalCompletedOrders := 0
+	totalRevenue := 0.0
+
+	for _, order := range orders {
+		dateStr := order.CompletedDate.Format("2006-01-02")
+
+		fmt.Printf("| %-7d | %-8s | %-10.2f | %-8s | %-14s |\n",
+			order.ID,
+			order.CustomerName,
+			order.TotalAmount,
+			order.StatusName, // Menggunakan StatusName
+			dateStr,
+		)
+		totalRevenue += order.TotalAmount
+		totalCompletedOrders++
+	}
+
+	fmt.Println("|---------|----------|------------|----------|----------------|")
+
+	fmt.Printf("\n*** Total Completed Orders: %d\n", totalCompletedOrders)
+	fmt.Printf("*** Total Revenue: Rp%.2f\n", totalRevenue)
+
+	fmt.Print("\nPress ENTER to continue...")
+	fmt.Scanln()
 }
