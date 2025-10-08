@@ -24,9 +24,9 @@ func LoginCLI(db *sql.DB) {
 	productHandler := handler.NewProductHandler(productRepo)
 	productHandler.ShowAllProducts()
 
-	fmt.Println("===========================================================================================")
-	fmt.Println("                                  WELCOME TO RYD STORE                                     ")
-	fmt.Println("===========================================================================================")
+	fmt.Println("========================================================================")
+	fmt.Println("                           WELCOME TO RYD STORE                                     ")
+	fmt.Println("========================================================================")
 	for {
 		menu := []string{
 			"Already a member? Sign in!",
@@ -73,4 +73,5 @@ func main() {
 	db := config.ConnectDB()
 	defer db.Close()
 	LoginCLI(db)
+
 }
