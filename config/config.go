@@ -21,7 +21,7 @@ func ConnectDB() *sql.DB {
 		log.Fatal("SUPABASE_URL not set in environment")
 	}
 
-	db, err := sql.Open("pgx", dsn+"?sslmode=require") // Supabase wajib sslmode
+	db, err := sql.Open("pgx", dsn) // Supabase wajib sslmode
 	if err != nil {
 		log.Fatal("Failed to open database:", err)
 	}
