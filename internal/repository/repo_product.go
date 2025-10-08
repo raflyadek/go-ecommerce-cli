@@ -49,4 +49,12 @@ func (r *ProductRepository) AddProduct(name, description string, price, stock in
 	return err
 }
 
+func (r *ProductRepository) DeleteProduct(id int) error {
+	_, err := r.DB.Query(`DELETE FROM products WHERE id = $1`, id)
 
+	if err != nil {
+		log.Println("Failed to delete product", err)
+		return err
+	}
+	return err
+}
