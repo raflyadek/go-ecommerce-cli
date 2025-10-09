@@ -75,7 +75,7 @@ func (r *ProductRepository) UpdateProduct(name, description string, price float6
 func (r *ProductRepository) ShowProductById(id int) (entity.Product, error) {
 	var product entity.Product
 	rows, err := r.DB.Query(`
-		SELECT p.id, p.name, p.description, p.price, p.stock FROM products WHERE id = $1
+		SELECT id, name, description, price, stock FROM products WHERE id = $1
 	`, id)
 
 	if err != nil {
