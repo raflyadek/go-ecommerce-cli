@@ -189,10 +189,5 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 				return
 			}
 		}
-		// ERROR: default case salah tempat, harusnya di dalam switch role
-		default:
-			fmt.Println("Invalid role.")
-			return
-		}
 	}
 }

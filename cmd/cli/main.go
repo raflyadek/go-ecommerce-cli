@@ -65,7 +65,7 @@ func LoginCLI(db *sql.DB) {
 	}
 }
 
-func ShowProductCLI(db *sql.DB){
+func ManageProductCLI(db *sql.DB){
 
 }
 
@@ -73,5 +73,4 @@ func main() {
 	db := config.ConnectDB()
 	defer db.Close()
 	LoginCLI(db)
-
 }
