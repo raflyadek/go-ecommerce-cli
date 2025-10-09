@@ -160,7 +160,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 1:
 				ManageOrdersMenu()
 			case 2:
-				
+				ReportMenu()
 			case 3:
 				h.AddStaff()
 			case 4:
@@ -174,7 +174,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 1:
 				ManageOrdersMenu()
 			case 2:
-
+				ReportMenu()
 			case 3:
 				fmt.Println("Logging out...")
 				return
@@ -275,6 +275,47 @@ func ManageOrdersMenu() {
 			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 3:
 			return // kembali ke dashboard
+		}
+	}
+}
+
+func ReportMenu() {
+	for {
+		fmt.Println("\n=== Report Menu ===")
+
+		menu := []string{
+			"User Report",
+			"Order Report",
+			"Stock Report",
+			"Back to Dashboard",
+		}
+
+		prompt := promptui.Select{
+			Label: "Select Report Type",
+			Items: menu,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . | cyan | bold }}",
+				Active:   "> {{ . | green | bold }}",
+				Inactive: "  {{ . | white }}",
+				Selected: "{{ . | bold }}",
+			},
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			fmt.Println("Prompt failed:", err)
+			return
+		}
+
+		switch i {
+		case 0:
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 1:
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING))
+		case 2:
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 3:
+			return
 		}
 	}
 }
