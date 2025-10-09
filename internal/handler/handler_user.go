@@ -119,7 +119,17 @@ func (h *UserHandler) AddStaff() {
 // --- DASHBOARD MENU (Merged version) ---
 func (h *UserHandler) ShowDashboard(user *entity.User) {
 	for {
-		menu := h.getMenuItems(user.RoleName)
+		// ERROR: method getMenuItems tidak ada
+		// menu := h.getMenuItems(user.RoleName)
+		var menu []string
+		switch user.RoleName {
+		case "admin":
+			menu = []string{"See Products", "Manage Orders", "Report", "Add Staff", "Logout"}
+		case "staff":
+			menu = []string{"See Products", "Manage Orders", "Report", "Logout"}
+		case "user":
+			menu = []string{"Create Order", "My Orders", "History", "Logout"}
+		}
 
 		prompt := promptui.Select{
 			Label: fmt.Sprintf("=== DASHBOARD (%s) ===", strings.ToUpper(user.RoleName)),
@@ -138,7 +148,8 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			return
 		}
 
-		switch strings.ToLower(role) {
+		// ERROR: variable 'role' tidak ada, harusnya user.RoleName
+		switch strings.ToLower(user.RoleName) {
 		case "admin":
 			switch i {
 			case 0:
@@ -178,9 +189,10 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 				return
 			}
 		}
-	default:
-		fmt.Println("Invalid role.")
-		return true
+		// ERROR: default case salah tempat, harusnya di dalam switch role
+		default:
+			fmt.Println("Invalid role.")
+			return
+		}
 	}
-	return false
 }
