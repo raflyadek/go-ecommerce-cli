@@ -14,13 +14,17 @@ import (
 
 type OrderHandler struct {
 	OrderRepo repository.OrderRepository
+	ProductRepo *repository.ProductRepository
+	ProductHandler *ProductHandler
 	DB        *sql.DB
 }
 
-func NewOrderHandler(orderRepo repository.OrderRepository, db *sql.DB) *OrderHandler {
+func NewOrderHandler(orderRepo repository.OrderRepository, productRepo *repository.ProductRepository, productHandler *ProductHandler, db *sql.DB,) *OrderHandler {
 	return &OrderHandler{
-		OrderRepo: orderRepo,
-		DB:        db,
+		OrderRepo:      orderRepo,
+		ProductRepo:    productRepo,
+		ProductHandler: productHandler,
+		DB:             db,
 	}
 }
 
@@ -52,6 +56,12 @@ func (h *OrderHandler) CreateOrderCLI(userID int) {
 			continue
 		}
 
+		// Cek stock terlebih dahulu
+		if product.Stock < qty {
+			fmt.Printf("Insufficient stock for %s. Available: %d\n", product.Name, product.Stock)
+			continue
+		}
+
 		item := entity.OrderItem{
 			ProductID: product.ID,
 			Quantity:  qty,
@@ -60,9 +70,9 @@ func (h *OrderHandler) CreateOrderCLI(userID int) {
 		items = append(items, item)
 		totalAmount += item.Price
 
-		fmt.Printf("%d %s successfully added with price is %.2f.\n", qty, product.Name, item.Price)
+		fmt.Printf("%d %s successfully added with price %.2f.\n", qty, product.Name, item.Price)
 
-		fmt.Print("Do you want to make another order? (y/n): ")
+		fmt.Print("Do you want to add another item? (y/n): ")
 		again, _ := reader.ReadString('\n')
 		again = strings.TrimSpace(again)
 		if strings.ToLower(again) != "y" {
@@ -80,15 +90,26 @@ func (h *OrderHandler) CreateOrderCLI(userID int) {
 		Items:       items,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
+		Address:     address,
 	}
 
+	// Insert order ke DB
 	orderID, err := h.OrderRepo.CreateOrder(order)
 	if err != nil {
 		fmt.Println("Failed to create order:", err)
 		return
 	}
 
-	fmt.Printf("Your order ID %d has been created with total price is %.2f\n", orderID, totalAmount)
+	// Kurangi stock tiap produk
+	for _, item := range order.Items {
+		err := h.ProductHandler.ProductRepo.ReduceStock(item.ProductID, item.Quantity)
+		if err != nil {
+			fmt.Println("Failed to reduce stock:", err)
+			return
+		}
+	}
+
+	fmt.Printf("Your order ID %d has been created with total price %.2f\n", orderID, totalAmount)
 	fmt.Printf("Delivery Address: %s\n", address)
 }
 
@@ -98,18 +119,18 @@ func (h *OrderHandler) findProductByIDOrName(input string) (entity.Product, erro
 
 	id, err := strconv.Atoi(input)
 	if err == nil {
-		query := `SELECT id, name, price FROM products WHERE id = $1 LIMIT 1`
+		query := `SELECT id, name, description, price, stock FROM products WHERE id = $1 LIMIT 1`
 		row := h.DB.QueryRow(query, id)
-		err := row.Scan(&product.ID, &product.Name, &product.Price)
+		err := row.Scan(&product.ID, &product.Name, &product.Description, &product.Price, &product.Stock)
 		if err != nil {
 			return product, fmt.Errorf("product not found with ID %d", id)
 		}
 		return product, nil
 	}
 
-	query := `SELECT id, name, price FROM products WHERE name ILIKE $1 LIMIT 1`
+	query := `SELECT id, name, description, price, stock FROM products WHERE name ILIKE $1 LIMIT 1`
 	row := h.DB.QueryRow(query, "%"+input+"%")
-	err = row.Scan(&product.ID, &product.Name, &product.Price)
+	err = row.Scan(&product.ID, &product.Name, &product.Description, &product.Price, &product.Stock)
 	if err != nil {
 		return product, fmt.Errorf("product not found with name '%s'", input)
 	}

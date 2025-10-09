@@ -37,22 +37,30 @@ func (r *OrderRepo) CreateOrder(order entity.Order) (int, error) {
 	}()
 
 	var orderID int
-	query := `INSERT INTO orders (user_id, total_amount, status_id, address, created_at, updated_at)
-	          VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING id`
+	query := `
+		INSERT INTO orders (user_id, total_amount, status_id, address, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, NOW(), NOW())
+		RETURNING id
+	`
 	err = tx.QueryRow(query, order.UserID, order.TotalAmount, 1, order.Address).Scan(&orderID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to insert order: %w", err)
 	}
 
-	// insert order items
+	// insert or update order items
 	for _, item := range order.Items {
-		queryItem := `INSERT INTO order_items (order_id, product_id, quantity, price_at_order)
-		              VALUES ($1, $2, $3, $4)`
+		queryItem := `
+			INSERT INTO order_items (order_id, product_id, quantity, price_at_order)
+			VALUES ($1, $2, $3, $4)
+			ON CONFLICT (order_id, product_id)
+			DO UPDATE SET quantity = order_items.quantity + EXCLUDED.quantity
+		`
 		_, err = tx.Exec(queryItem, orderID, item.ProductID, item.Quantity, item.Price)
 		if err != nil {
-			return 0, fmt.Errorf("failed to insert order item: %w", err)
+			return 0, fmt.Errorf("failed to insert or update order item: %w", err)
 		}
 	}
+
 	return orderID, nil
 }
 
