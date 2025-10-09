@@ -198,6 +198,10 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 }
 
 func (h *UserHandler) ReportMenu() {
+	// Tampilkan best selling products dulu
+	reportHandler := NewReportHandler(h.DB)
+	reportHandler.ShowBestSellingProducts()
+	
 	for {
 		fmt.Println("\n===== Report Menu =====")
 
@@ -211,6 +215,12 @@ func (h *UserHandler) ReportMenu() {
 		prompt := promptui.Select{
 			Label: "Select Report Type",
 			Items: menu,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . | cyan | bold }}",
+				Active:   "{{ . | green | bold }}",
+				Inactive: "  {{ . | white }}",
+				Selected: "{{ . | bold }}",
+			},
 		}
 
 		i, _, err := prompt.Run()

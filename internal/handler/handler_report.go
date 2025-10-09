@@ -41,17 +41,18 @@ func (h *ReportHandler) ShowUserReport() {
 	fmt.Printf("User ID: %d Name: %s\n\n", userID, userName)
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Order ID", "Status", "Total (Rp)"})
+	table.SetHeader([]string{"Order ID", "Status", "Total (Rp)", "Address"})
 
 	var totalAmount float64
 	for _, order := range orders {
 		row := []string{
 			fmt.Sprintf("%d", order.ID),
 			order.StatusName,
-			fmt.Sprintf("%.2f", float64(order.TotalAmount)),
+			fmt.Sprintf("%.2f", order.TotalAmount),
+			order.Address,
 		}
 		table.Append(row)
-		totalAmount += float64(order.TotalAmount)
+		totalAmount += order.TotalAmount
 	}
 
 	table.Render()
@@ -88,12 +89,12 @@ func (h *ReportHandler) ShowCompletedOrders() {
 		row := []string{
 			fmt.Sprintf("%d", order.ID),
 			order.CustomerName,
-			fmt.Sprintf("%.2f", float64(order.TotalAmount)),
+			fmt.Sprintf("%.2f", order.TotalAmount),
 			order.StatusName,
 			dateStr,
 		}
 		table.Append(row)
-		totalRevenue += float64(order.TotalAmount)
+		totalRevenue += order.TotalAmount
 		totalOrders++
 	}
 
@@ -134,4 +135,31 @@ func (h *ReportHandler) ShowStockReport() {
 
 	fmt.Print("\nPress ENTER to continue...")
 	fmt.Scanln()
+}
+func (h *ReportHandler) ShowBestSellingProducts() {
+	products, err := h.ReportRepo.GetBestSellingProducts()
+	if err != nil {
+		fmt.Println("Error retrieving best selling products:", err)
+		return
+	}
+
+	if len(products) == 0 {
+		fmt.Println("No sales data found.")
+		return
+	}
+
+	fmt.Println("\n===== Best Selling Products =====")
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Product ID", "Product Name", "Total Sold", "Total Revenue"})
+
+	for _, product := range products {
+		row := []string{
+			fmt.Sprintf("%d", product.ProductID),
+			product.ProductName,
+			fmt.Sprintf("%d", product.TotalSold),
+			fmt.Sprintf("%.2f", product.TotalRevenue),
+		}
+		table.Append(row)
+	}
+	table.Render()
 }

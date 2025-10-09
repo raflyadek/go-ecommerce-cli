@@ -4,7 +4,7 @@ type UserReport struct {
 	UserID     int
 	UserName   string
 	OrderCount int
-	TotalSpent int
+	TotalSpent float64
 }
 
 type StockReport struct {
@@ -13,4 +13,11 @@ type StockReport struct {
 	StockIn      int
 	StockOut     int
 	CurrentStock int
+}
+
+type BestSellingProduct struct {
+	ProductID    int
+	ProductName  string
+	TotalSold    int
+	TotalRevenue float64
 }

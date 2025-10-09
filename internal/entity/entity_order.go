@@ -7,9 +7,10 @@ import (
 type Order struct {
 	ID            int
 	UserID        int
-	TotalAmount   int
+	TotalAmount   float64
 	StatusName    string
 	CompletedDate time.Time
+	Address       string
 
 	CustomerName string
 	Items        []OrderItem

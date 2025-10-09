@@ -11,6 +11,7 @@ type ReportRepository interface {
 	FindUserOrders(userID int) ([]entity.Order, error)
 	FindAllUsersWithOrders() ([]entity.UserReport, error)
 	GetStockReport() ([]entity.StockReport, error)
+	GetBestSellingProducts() ([]entity.BestSellingProduct, error)
 }
 
 type ReportRepo struct {
@@ -28,7 +29,8 @@ func (r *ReportRepo) FindCompletedOrders() ([]entity.Order, error) {
 			u.name AS customer_name,
 			o.total_amount,
 			s.status_name,
-			o.updated_at AS completed_date
+			o.updated_at AS completed_date,
+			o.address
 		FROM orders o
 		JOIN users u ON o.user_id = u.id
 		JOIN status_order s ON o.status_id = s.id
@@ -53,6 +55,7 @@ func (r *ReportRepo) FindCompletedOrders() ([]entity.Order, error) {
 			&order.TotalAmount,
 			&order.StatusName,
 			&completedAt,
+			&order.Address,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning order row: %w", err)
@@ -79,7 +82,8 @@ func (r *ReportRepo) FindUserOrders(userID int) ([]entity.Order, error) {
 			u.name AS customer_name,
 			o.total_amount,
 			s.status_name,
-			o.updated_at AS completed_date
+			o.updated_at AS completed_date,
+			o.address
 		FROM orders o
 		JOIN users u ON o.user_id = u.id
 		JOIN status_order s ON o.status_id = s.id
@@ -104,6 +108,7 @@ func (r *ReportRepo) FindUserOrders(userID int) ([]entity.Order, error) {
 			&order.TotalAmount,
 			&order.StatusName,
 			&completedAt,
+			&order.Address,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning order row: %w", err)
@@ -201,4 +206,30 @@ func (r *ReportRepo) GetStockReport() ([]entity.StockReport, error) {
 	}
 
 	return reports, nil
+}
+func (r *ReportRepo) GetBestSellingProducts() ([]entity.BestSellingProduct, error) {
+	query := `SELECT * FROM view_best_selling_products`
+
+	rows, err := r.DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying best selling products: %w", err)
+	}
+	defer rows.Close()
+
+	var products []entity.BestSellingProduct
+	for rows.Next() {
+		var product entity.BestSellingProduct
+		err := rows.Scan(
+			&product.ProductID,
+			&product.ProductName,
+			&product.TotalSold,
+			&product.TotalRevenue,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning best selling product: %w", err)
+		}
+		products = append(products, product)
+	}
+
+	return products, nil
 }
