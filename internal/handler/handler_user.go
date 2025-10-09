@@ -194,6 +194,8 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		}
 	}
 }
+
+// Report Menu
 func (h *UserHandler) ReportMenu() {
 	for {
 		fmt.Println("\n===== Report Menu =====")
