@@ -51,6 +51,7 @@ user_id INT NOT NULL,
 order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 status_id INT NOT NULL,
 total_amount DECIMAL(12,2) NOT NULL,
+address TEXT,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (user_id) REFERENCES users(id),
@@ -61,12 +62,13 @@ FOREIGN KEY (status_id) REFERENCES status_order(id)
 -- TABLE: order_items
 -- =====================================
 CREATE TABLE order_items (
+id SERIAL PRIMARY KEY,
 order_id INT NOT NULL,
 product_id INT NOT NULL,
 quantity INT NOT NULL,
 price_at_order DECIMAL(12,2),
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-PRIMARY KEY (order_id, product_id),
 FOREIGN KEY (order_id) REFERENCES orders(id),
 FOREIGN KEY (product_id) REFERENCES products(id)
 );
+
