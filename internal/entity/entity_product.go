@@ -5,4 +5,5 @@ type Product struct {
 	Description string
 	ID          int
 	Price       float64
+	Stock		int
 }

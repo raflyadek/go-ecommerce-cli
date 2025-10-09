@@ -190,6 +190,9 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 3:
 				fmt.Println("Logging out...")
 				return
+			default:
+				fmt.Println("Invalid role.")
+				return
 			}
 		}
 	}
@@ -227,7 +230,7 @@ func SeeProductsMenu(ProductHandler *ProductHandler) {
 
 		switch i {
 		case 0:
-			// ProductHandler.AddProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			ProductHandler.AddProducts()// ProductHandler.AddProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 1:
 			// ProductHandler.UpdateProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 2:
@@ -237,6 +240,7 @@ func SeeProductsMenu(ProductHandler *ProductHandler) {
 		}
 	}
 }
+
 
 func ManageOrdersMenu() {
 	for {
