@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 type OrderHandler struct {
@@ -130,14 +132,21 @@ func (h *OrderHandler) MyOrdersCLI(userID int) {
     }
 
     fmt.Println("\n=== My Orders ===")
-    fmt.Printf("+------+------------+-------------+-------+---------------------+\n")
-    fmt.Printf("| ID   | Status     | Total (Rp)  | Items | Order Date          |\n")
-    fmt.Printf("+------+------------+-------------+-------+---------------------+\n")
+    table := tablewriter.NewWriter(os.Stdout)
+    table.SetHeader([]string{"ID", "Status", "Total (Rp)", "Items", "Order Date"})
+
     for _, o := range orders {
-        fmt.Printf("| %-4d | %-10s | %-11.2f | %-5d | %-19s |\n",
-            o.ID, o.Status, o.Total, o.ItemCount, o.OrderDate)
+        row := []string{
+            fmt.Sprintf("%d", o.ID),
+            o.Status,
+            fmt.Sprintf("%.2f", o.Total),
+            fmt.Sprintf("%d", o.ItemCount),
+            o.OrderDate,
+        }
+        table.Append(row)
     }
-    fmt.Printf("+------+------------+-------------+-------+---------------------+\n")
+
+    table.Render()
 
     fmt.Print("View order details with ID (\"CTRL + C\" to return): ")
     var orderID int
@@ -150,14 +159,21 @@ func (h *OrderHandler) MyOrdersCLI(userID int) {
     }
 
     fmt.Printf("\nOrder ID: %d, Total: %.2f\n", order.ID, order.TotalAmount)
-    fmt.Printf("Items:\n")
-    fmt.Printf("+--------------------+----------+------------+\n")
-    fmt.Printf("| Product Name       | Quantity | Price (Rp) |\n")
-    fmt.Printf("+--------------------+----------+------------+\n")
+    fmt.Println("Items:")
+
+    itemTable := tablewriter.NewWriter(os.Stdout)
+    itemTable.SetHeader([]string{"Product Name", "Quantity", "Price (Rp)"})
+
     for _, item := range items {
-        fmt.Printf("| %-18s | %-8d | %-10.2f |\n", item.ProductName, item.Quantity, item.Price)
+        row := []string{
+            item.ProductName,
+            fmt.Sprintf("%d", item.Quantity),
+            fmt.Sprintf("%.2f", item.Price),
+        }
+        itemTable.Append(row)
     }
-    fmt.Printf("+--------------------+----------+------------+\n")
+
+    itemTable.Render()
 }
 
 // UpdateOrderStatusCLI allows admin/staff to update the status of an order

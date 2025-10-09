@@ -9,6 +9,9 @@ import (
 	"go-ecommerce-cli/pkg/utils"
 	"os"
 	"strings"
+	"syscall"
+
+	"golang.org/x/term"
 
 	"github.com/manifoldco/promptui"
 )
@@ -34,92 +37,87 @@ func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHand
 
 // --- LOGIN ---
 func (h *UserHandler) Login() bool {
-	fmt.Println("\n=== LOGIN ===")
+    fmt.Println("\n=== LOGIN ===")
 
-	fmt.Print("Enter email: ")
-	email, _ := h.Reader.ReadString('\n')
-	email = strings.TrimSpace(email)
+    fmt.Print("Enter email: ")
+    email, _ := h.Reader.ReadString('\n')
+    email = strings.TrimSpace(email)
 
-	fmt.Print("Enter password: ")
-	password, _ := h.Reader.ReadString('\n')
-	password = strings.TrimSpace(password)
+    fmt.Print("Enter password: ")
+    bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+    fmt.Println()
+    if err != nil {
+        fmt.Println("Error reading password:", err)
+        return false
+    }
+    password := strings.TrimSpace(string(bytePassword))
 
-	user, err := h.UserRepo.GetByEmail(email)
-	if err != nil {
-		if email == "" {
-			fmt.Println("Email cannot be empty.")
-		} else {
-			fmt.Println("Error:", err)
-		}
-		return false
-	}
+    user, err := h.UserRepo.GetByEmail(email)
+    if err != nil {
+        if email == "" {
+            fmt.Println("Email cannot be empty.")
+        } else {
+            fmt.Println("Error:", err)
+        }
+        return false
+    }
 
-	if !utils.CheckPassword(password, user.Password) {
-		fmt.Println("Password incorrect")
-		return false
-	}
+    if !utils.CheckPassword(password, user.Password) {
+        fmt.Println("Password incorrect")
+        return false
+    }
 
-	fmt.Printf("Welcome, %s! Role: %s\n", user.Name, user.RoleName)
-	h.ProductHandler.ShowAllProducts()
-	h.ShowDashboard(&user)
-	return true
+    fmt.Printf("Welcome, %s! Role: %s\n", user.Name, user.RoleName)
+    h.ProductHandler.ShowAllProducts()
+    h.ShowDashboard(&user)
+    return true
 }
 
 // --- REGISTER USER ---
-func (h *UserHandler) RegisterUserCLI() {
-	fmt.Println("\n=== REGISTER USER ===")
+func (h *UserHandler) RegisterUserCLI() { 
+	fmt.Println("\n=== REGISTER USER ===") 
+	fmt.Print("Enter name: ") 
+	name, _ := h.Reader.ReadString('\n') 
+	name = strings.TrimSpace(name) 
+	
+	fmt.Print("Enter email: ") 
+	email, _ := h.Reader.ReadString('\n') 
+	email = strings.TrimSpace(email) 
 
-	fmt.Print("Enter name: ")
-	name, _ := h.Reader.ReadString('\n')
-	name = strings.TrimSpace(name)
-
-	fmt.Print("Enter email: ")
-	email, _ := h.Reader.ReadString('\n')
-	email = strings.TrimSpace(email)
-
-	fmt.Print("Enter password: ")
-	password, _ := h.Reader.ReadString('\n')
-	password = strings.TrimSpace(password)
-
-	if name == "" || email == "" || password == "" {
-		fmt.Println("All fields are required.")
-		return
-	}
-
-	hashed := utils.HashPassword(password)
-	err := h.UserRepo.RegisterUser(name, email, hashed)
-	if err != nil {
-		fmt.Println("Failed to register user:", err)
-		return
-	}
-
-	fmt.Println("User registered successfully!")
-}
+	fmt.Print("Enter password: ") 
+	password, _ := h.Reader.ReadString('\n') 
+	password = strings.TrimSpace(password) 
+	if name == "" || email == "" || password == "" 	{ 
+		fmt.Println("All fields are required.") 
+		return 
+	} 
+	hashed := utils.HashPassword(password) 
+	err := h.UserRepo.RegisterUser(name, email, hashed) 
+	if err != nil { fmt.Println("Failed to register user:", err) 
+		return 
+	} 
+	fmt.Println("User registered successfully!") }
 
 // --- ADD STAFF (Admin Only) ---
-func (h *UserHandler) AddStaff() {
-	fmt.Println("\n=== ADD STAFF ===")
+func (h *UserHandler) AddStaff() { fmt.Println("\n=== ADD STAFF ===") 
+	fmt.Print("Enter staff name: ") 
+	name, _ := h.Reader.ReadString('\n') 
+	name = strings.TrimSpace(name) 
 
-	fmt.Print("Enter staff name: ")
-	name, _ := h.Reader.ReadString('\n')
-	name = strings.TrimSpace(name)
+	fmt.Print("Enter staff email: ") 
+	email, _ := h.Reader.ReadString('\n') 
+	email = strings.TrimSpace(email) 
+	fmt.Print("Enter password: ") 
 
-	fmt.Print("Enter staff email: ")
-	email, _ := h.Reader.ReadString('\n')
-	email = strings.TrimSpace(email)
+	password, _ := h.Reader.ReadString('\n') 
+	password = strings.TrimSpace(password) 
+	hashed := utils.HashPassword(password) 
+	err := h.UserRepo.CreateStaff(name, email, hashed) 
 
-	fmt.Print("Enter password: ")
-	password, _ := h.Reader.ReadString('\n')
-	password = strings.TrimSpace(password)
-
-	hashed := utils.HashPassword(password)
-	err := h.UserRepo.CreateStaff(name, email, hashed)
-	if err != nil {
-		fmt.Println("Error creating staff:", err)
-		return
-	}
-
-	fmt.Printf("Staff '%s' (%s) added successfully!\n", name, email)
+	if err != nil { fmt.Println("Error creating staff:", err) 
+		return 
+	} 
+	fmt.Printf("Staff '%s' (%s) added successfully!\n", name, email) 
 }
 
 // --- DASHBOARD MENU ---
