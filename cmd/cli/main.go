@@ -29,7 +29,19 @@ func LoginCLI(db *sql.DB) {
 	userHandler := handler.NewUserHandler(userRepo, db, productHandler, orderHandler)
 
 	fmt.Println("========================================================================")
-	fmt.Println("                           WELCOME TO RYD STORE                                     ")
+	fmt.Println(`     
+ \o       o/      o           o__ __o        o__ __o__/_   o__ __o               o__ __o    ____o__ __o____     o__ __o        o__ __o         o__ __o__/_ 
+  v\     /v      <|>         <|     v\      <|    v       <|     v\             /v     v\    /   \   /   \     /v     v\      <|     v\       <|    v      
+   <\   />       / \         / \     <\     < >           / \     <\           />       <\        \o/         />       <\     / \     <\      < >          
+     \o/       o/   \o       \o/       \o    |            \o/     o/          _\o____              |        o/           \o   \o/     o/       |           
+      |       <|__ __|>       |         |>   o__/_         |__  _<|                \_\__o__       < >      <|             |>   |__  _<|        o__/_       
+     / \      /       \      / \       //    |             |       \                     \         |        \\           //    |       \       |           
+     \o/    o/         \o    \o/      /     <o>           <o>       \o         \         /         o          \         /     <o>       \o    <o>          
+      |    /v           v\    |      o       |             |         v\         o       o         <|           o       o       |         v\    |           
+     / \  />             <\  / \  __/>      / \  _\o__/_  / \         <\        <\__ __/>         / \          <\__ __/>      / \         <\  / \  _\o__/_ 
+                                                                                                                                                           
+                                                                                                                                                           
+                                                                                                                                                                                                `)
 	fmt.Println("========================================================================")
 
 	for {
