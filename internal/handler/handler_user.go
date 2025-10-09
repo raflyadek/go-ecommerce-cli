@@ -15,15 +15,17 @@ import (
 
 type UserHandler struct {
 	UserRepo *repository.UserRepository
+	ProductHandler *ProductHandler
 	Reader   *bufio.Reader
 	DB       *sql.DB
 }
 
-func NewUserHandler(repo *repository.UserRepository, db *sql.DB) *UserHandler {
+func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler) *UserHandler {
 	return &UserHandler{
-		UserRepo: repo,
-		Reader:   bufio.NewReader(os.Stdin),
-		DB:       db,
+		UserRepo:       userRepo,
+		ProductHandler: productHandler,
+		Reader:         bufio.NewReader(os.Stdin),
+		DB:             db,
 	}
 }
 
@@ -55,6 +57,7 @@ func (h *UserHandler) Login() bool {
 	}
 
 	fmt.Printf("Welcome, %s! Role: %s\n", user.Name, user.RoleName)
+	h.ProductHandler.ShowAllProducts()
 	h.ShowDashboard(&user)
 	return true
 }
@@ -153,7 +156,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		case "admin":
 			switch i {
 			case 0:
-				fmt.Println("Admin: See Products")
+				ManageProductsMenu(h.ProductHandler) 
 			case 1:
 				fmt.Println("Admin: Manage Orders")
 			case 2:
@@ -167,7 +170,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		case "staff":
 			switch i {
 			case 0:
-				fmt.Println("Staff: See Products")
+				ManageProductsMenu(h.ProductHandler)
 			case 1:
 				fmt.Println("Staff: Manage Orders")
 			case 2:
@@ -188,6 +191,49 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 				fmt.Println("Logging out...")
 				return
 			}
+		}
+	}
+}
+
+func ManageProductsMenu(ProductHandler *ProductHandler) {
+	for {
+		fmt.Println("\n====================================================")
+		ProductHandler.ShowAllProducts()
+		fmt.Println("====================================================")
+
+		menu := []string{
+			"Add Product",
+			"Update Product",
+			"Delete Product",
+			"Back to Dashboard",
+		}
+
+		prompt := promptui.Select{
+			Label: "Select Action",
+			Items: menu,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . | cyan | bold }}",
+				Active:   "> {{ . | green | bold }}",
+				Inactive: "  {{ . | white }}",
+				Selected: "{{ . | bold }}",
+			},
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			fmt.Println("Prompt failed:", err)
+			return
+		}
+
+		switch i {
+		case 0:
+			// ProductHandler.AddProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 1:
+			// ProductHandler.UpdateProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 2:
+			// ProductHandler.DeleteProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 3:
+			return // kembali ke dashboard
 		}
 	}
 }
