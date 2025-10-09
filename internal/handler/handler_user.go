@@ -209,6 +209,7 @@ func (h *UserHandler) ReportMenu() {
 			"User Report",
 			"Order Report",
 			"Stock Report",
+			"Report Summary",
 			"Back to Dashboard",
 		}
 
@@ -240,6 +241,9 @@ func (h *UserHandler) ReportMenu() {
 			reportHandler := NewReportHandler(h.DB)
 			reportHandler.ShowStockReport()
 		case 3:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowReportSummary()
+		case 4:
 			return
 		}
 	}

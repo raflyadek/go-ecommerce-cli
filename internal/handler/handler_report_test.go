@@ -39,6 +39,16 @@ func (m *MockReportRepository) GetBestSellingProducts() ([]entity.BestSellingPro
 	return args.Get(0).([]entity.BestSellingProduct), args.Error(1)
 }
 
+func (m *MockReportRepository) FindUserOrdersByName(userName string) ([]entity.Order, error) {
+	args := m.Called(userName)
+	return args.Get(0).([]entity.Order), args.Error(1)
+}
+
+func (m *MockReportRepository) GetReportSummary() (entity.ReportSummary, error) {
+	args := m.Called()
+	return args.Get(0).(entity.ReportSummary), args.Error(1)
+}
+
 func TestReportHandler_ShowBestSellingProducts_Success(t *testing.T) {
 	mockRepo := new(MockReportRepository)
 	handler := &ReportHandler{ReportRepo: mockRepo}
@@ -129,6 +139,25 @@ func TestReportHandler_Repository_Methods(t *testing.T) {
 	assert.Len(t, userResult, 1)
 	assert.Equal(t, "John", userResult[0].UserName)
 
+	// Test FindUserOrdersByName - mencari pesanan berdasarkan nama user
+	mockRepo.On("FindUserOrdersByName", "John").Return(orders, nil)
+
+	nameResult, err := handler.ReportRepo.FindUserOrdersByName("John")
+	assert.NoError(t, err)
+	assert.Len(t, nameResult, 1)
+	assert.Equal(t, "John", nameResult[0].CustomerName)
+
+	// Test GetReportSummary - mendapatkan ringkasan laporan
+	summary := entity.ReportSummary{
+		TotalUsers: 10, TotalOrders: 25, TotalRevenue: 500000.00, AvgOrderValue: 20000.00,
+	}
+	mockRepo.On("GetReportSummary").Return(summary, nil)
+
+	summaryResult, err := handler.ReportRepo.GetReportSummary()
+	assert.NoError(t, err)
+	assert.Equal(t, 10, summaryResult.TotalUsers)
+	assert.Equal(t, float64(500000), summaryResult.TotalRevenue)
+
 	mockRepo.AssertExpectations(t)
 }
 
@@ -139,18 +168,24 @@ func TestReportHandler_Error_Handling(t *testing.T) {
 	// Test penanganan error untuk setiap method
 	mockRepo.On("FindCompletedOrders").Return([]entity.Order{}, errors.New("db error"))
 	mockRepo.On("FindUserOrders", 1).Return([]entity.Order{}, errors.New("db error"))
+	mockRepo.On("FindUserOrdersByName", "test").Return([]entity.Order{}, errors.New("db error"))
 	mockRepo.On("GetStockReport").Return([]entity.StockReport{}, errors.New("db error"))
 	mockRepo.On("FindAllUsersWithOrders").Return([]entity.UserReport{}, errors.New("db error"))
+	mockRepo.On("GetReportSummary").Return(entity.ReportSummary{}, errors.New("db error"))
 
 	_, err1 := handler.ReportRepo.FindCompletedOrders()
 	_, err2 := handler.ReportRepo.FindUserOrders(1)
-	_, err3 := handler.ReportRepo.GetStockReport()
-	_, err4 := handler.ReportRepo.FindAllUsersWithOrders()
+	_, err3 := handler.ReportRepo.FindUserOrdersByName("test")
+	_, err4 := handler.ReportRepo.GetStockReport()
+	_, err5 := handler.ReportRepo.FindAllUsersWithOrders()
+	_, err6 := handler.ReportRepo.GetReportSummary()
 
 	assert.Error(t, err1)
 	assert.Error(t, err2)
 	assert.Error(t, err3)
 	assert.Error(t, err4)
+	assert.Error(t, err5)
+	assert.Error(t, err6)
 
 	mockRepo.AssertExpectations(t)
 }

@@ -9,9 +9,11 @@ import (
 type ReportRepository interface {
 	FindCompletedOrders() ([]entity.Order, error)
 	FindUserOrders(userID int) ([]entity.Order, error)
+	FindUserOrdersByName(userName string) ([]entity.Order, error)
 	FindAllUsersWithOrders() ([]entity.UserReport, error)
 	GetStockReport() ([]entity.StockReport, error)
 	GetBestSellingProducts() ([]entity.BestSellingProduct, error)
+	GetReportSummary() (entity.ReportSummary, error)
 }
 
 type ReportRepo struct {
@@ -232,4 +234,76 @@ func (r *ReportRepo) GetBestSellingProducts() ([]entity.BestSellingProduct, erro
 	}
 
 	return products, nil
+}
+
+func (r *ReportRepo) FindUserOrdersByName(userName string) ([]entity.Order, error) {
+	query := `
+		SELECT 
+			o.id,
+			u.name AS customer_name,
+			o.total_amount,
+			s.status_name,
+			o.updated_at AS completed_date,
+			o.address
+		FROM orders o
+		JOIN users u ON o.user_id = u.id
+		JOIN status_order s ON o.status_id = s.id
+		WHERE LOWER(u.name) LIKE LOWER($1)
+		ORDER BY o.created_at DESC
+	`
+
+	rows, err := r.DB.Query(query, "%"+userName+"%")
+	if err != nil {
+		return nil, fmt.Errorf("error querying user orders by name: %w", err)
+	}
+	defer rows.Close()
+
+	var orders []entity.Order
+	for rows.Next() {
+		var order entity.Order
+		var completedAt sql.NullTime
+
+		err := rows.Scan(
+			&order.ID,
+			&order.CustomerName,
+			&order.TotalAmount,
+			&order.StatusName,
+			&completedAt,
+			&order.Address,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning order row: %w", err)
+		}
+
+		if completedAt.Valid {
+			order.CompletedDate = completedAt.Time
+		}
+
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
+func (r *ReportRepo) GetReportSummary() (entity.ReportSummary, error) {
+	query := `
+		SELECT 
+			(SELECT COUNT(*) FROM users WHERE role_id = 3) as total_users,
+			(SELECT COUNT(*) FROM orders) as total_orders,
+			(SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE status_id IN (2,3,4)) as total_revenue,
+			(SELECT COALESCE(AVG(total_amount), 0) FROM orders WHERE status_id IN (2,3,4)) as avg_order_value
+	`
+
+	var summary entity.ReportSummary
+	err := r.DB.QueryRow(query).Scan(
+		&summary.TotalUsers,
+		&summary.TotalOrders,
+		&summary.TotalRevenue,
+		&summary.AvgOrderValue,
+	)
+	if err != nil {
+		return summary, fmt.Errorf("error querying report summary: %w", err)
+	}
+
+	return summary, nil
 }

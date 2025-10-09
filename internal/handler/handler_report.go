@@ -3,9 +3,11 @@ package handler
 import (
 	"database/sql"
 	"fmt"
+	"go-ecommerce-cli/internal/entity"
 	"go-ecommerce-cli/internal/repository"
 	"os"
 
+	"github.com/manifoldco/promptui"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -20,25 +22,57 @@ func NewReportHandler(db *sql.DB) *ReportHandler {
 
 func (h *ReportHandler) ShowUserReport() {
 	fmt.Printf("\n===== User Report ===== (\"Ctrl+C\" to return to dashboard)\n")
-	fmt.Print("Search by ID: ")
-	var userID int
-	fmt.Scanln(&userID)
+	
+	searchOptions := []string{"Search by ID", "Search by Name"}
+	prompt := promptui.Select{
+		Label: "Choose Search Option",
+		Items: searchOptions,
+		Templates: &promptui.SelectTemplates{
+			Label:    "{{ . | cyan | bold }}",
+			Active:   "{{ . | green | bold }}",
+			Inactive: "  {{ . | white }}",
+			Selected: "{{ . | bold }}",
+		},
+	}
 
-	orders, err := h.ReportRepo.FindUserOrders(userID)
+	choice, _, err := prompt.Run()
+	if err != nil {
+		fmt.Println("Prompt failed:", err)
+		return
+	}
+
+	var orders []entity.Order
+	var searchKey string
+
+	switch choice {
+	case 0:
+		fmt.Print("Enter User ID: ")
+		var userID int
+		fmt.Scanln(&userID)
+		orders, err = h.ReportRepo.FindUserOrders(userID)
+		searchKey = fmt.Sprintf("ID: %d", userID)
+	case 1:
+		fmt.Print("Enter User Name: ")
+		var userName string
+		fmt.Scanln(&userName)
+		orders, err = h.ReportRepo.FindUserOrdersByName(userName)
+		searchKey = fmt.Sprintf("Name: %s", userName)
+	}
+
 	if err != nil {
 		fmt.Println("Error retrieving user orders:", err)
 		return
 	}
 
 	if len(orders) == 0 {
-		fmt.Println("No orders found for this user.")
+		fmt.Printf("No orders found for %s.\n", searchKey)
 		fmt.Print("\nPress ENTER to continue...")
 		fmt.Scanln()
 		return
 	}
 
 	userName := orders[0].CustomerName
-	fmt.Printf("User ID: %d Name: %s\n\n", userID, userName)
+	fmt.Printf("\nSearch Result for %s - User: %s\n\n", searchKey, userName)
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Order ID", "Status", "Total (Rp)", "Address"})
@@ -56,7 +90,7 @@ func (h *ReportHandler) ShowUserReport() {
 	}
 
 	table.Render()
-	fmt.Printf("\n> Summary by User\n")
+	fmt.Printf("\n> Summary\n")
 	fmt.Printf("%s: %d Orders (Total Rp%.2f)\n", userName, len(orders), totalAmount)
 
 	fmt.Print("\nPress ENTER to continue...")
@@ -159,6 +193,30 @@ func (h *ReportHandler) ShowBestSellingProducts() {
 			fmt.Sprintf("%d", product.TotalSold),
 			fmt.Sprintf("%.2f", product.TotalRevenue),
 		}
+		table.Append(row)
+	}
+	table.Render()
+}
+
+func (h *ReportHandler) ShowReportSummary() {
+	summary, err := h.ReportRepo.GetReportSummary()
+	if err != nil {
+		fmt.Println("Error retrieving report summary:", err)
+		return
+	}
+
+	fmt.Println("\n===== Report Summary =====")
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Metric", "Value"})
+
+	rows := [][]string{
+		{"Total Users", fmt.Sprintf("%d", summary.TotalUsers)},
+		{"Total Orders", fmt.Sprintf("%d", summary.TotalOrders)},
+		{"Total Revenue", fmt.Sprintf("Rp %.2f", summary.TotalRevenue)},
+		{"Average Order Value", fmt.Sprintf("Rp %.2f", summary.AvgOrderValue)},
+	}
+
+	for _, row := range rows {
 		table.Append(row)
 	}
 	table.Render()

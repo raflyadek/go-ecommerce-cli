@@ -21,3 +21,10 @@ type BestSellingProduct struct {
 	TotalSold    int
 	TotalRevenue float64
 }
+
+type ReportSummary struct {
+	TotalUsers    int
+	TotalOrders   int
+	TotalRevenue  float64
+	AvgOrderValue float64
+}
