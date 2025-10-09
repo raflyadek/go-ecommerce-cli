@@ -3,6 +3,9 @@ package handler
 import (
 	"fmt"
 	"go-ecommerce-cli/internal/repository"
+	"os"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 type ProductHandler struct {
@@ -26,10 +29,22 @@ func (h *ProductHandler) ShowAllProducts() {
 	}
 
 	fmt.Println("\n=== PRODUCTS ===")
-	fmt.Printf("%-3s | %-20s | %-10s | %-30s\n", "ID", "Name", "Price", "Description")
-	fmt.Println("----------------------------------------------------------------------------------------")
+
+	// Membuat tabel
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"ID", "Name", "Price (Rp)", "Description"})
+
+	// Tambahkan data ke tabel
 	for _, p := range products {
-		fmt.Printf("%-3d | %-20s | %-10.2f | %-30s\n", p.ID, p.Name, p.Price, p.Description)
+		row := []string{
+			fmt.Sprintf("%d", p.ID),
+			p.Name,
+			fmt.Sprintf("%.2f", p.Price),
+			p.Description,
+		}
+		table.Append(row)
 	}
-	fmt.Println()
+
+	// Render tabel ke terminal
+	table.Render()
 }

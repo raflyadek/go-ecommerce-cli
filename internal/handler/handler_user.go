@@ -3,6 +3,7 @@ package handler
 import (
 	"bufio"
 	"fmt"
+	"go-ecommerce-cli/internal/entity"
 	"go-ecommerce-cli/internal/repository"
 	"go-ecommerce-cli/pkg/utils"
 	"os"
@@ -23,7 +24,7 @@ func NewUserHandler(repo *repository.UserRepository) *UserHandler {
 	}
 }
 
-// --- Login ---
+// --- LOGIN ---
 func (h *UserHandler) Login() bool {
 	fmt.Println("\n=== LOGIN ===")
 
@@ -51,11 +52,11 @@ func (h *UserHandler) Login() bool {
 	}
 
 	fmt.Printf("Welcome, %s! Role: %s\n", user.Name, user.RoleName)
-	h.ShowDashboard(user.RoleName)
+	h.ShowDashboard(&user)
 	return true
 }
 
-// --- Register User ---
+// --- REGISTER USER ---
 func (h *UserHandler) RegisterUserCLI() {
 	fmt.Println("\n=== REGISTER USER ===")
 
@@ -86,7 +87,7 @@ func (h *UserHandler) RegisterUserCLI() {
 	fmt.Println("User registered successfully!")
 }
 
-// --- Add Staff (Admin Only) ---
+// --- ADD STAFF (Admin Only) ---
 func (h *UserHandler) AddStaff() {
 	fmt.Println("\n=== ADD STAFF ===")
 
@@ -112,88 +113,90 @@ func (h *UserHandler) AddStaff() {
 	fmt.Printf("Staff '%s' (%s) added successfully!\n", name, email)
 }
 
-// --- Dashboard Interaktif ---
-func (h *UserHandler) ShowDashboard(role string) {
+// --- DASHBOARD MENU (Merged version) ---
+func (h *UserHandler) ShowDashboard(user *entity.User) {
 	for {
-		var items []string
-		switch strings.ToLower(role) {
-		case "admin":
-			items = []string{
-				"See Products",
-				"Manage Orders",
-				"Report",
-				"Add Staff",
-				"Logout",
-			}
-		case "staff":
-			items = []string{
-				"See Products",
-				"Manage Orders",
-				"Report",
-				"Logout",
-			}
-		case "user":
-			items = []string{
-				"Create Order",
-				"My Orders",
-				"History",
-				"Logout",
-			}
-		default:
-			fmt.Println("Invalid role, contact admin.")
-			return
-		}
+		menu := h.getMenuItems(user.RoleName)
 
 		prompt := promptui.Select{
-			Label: "=== DASHBOARD ===",
-			Items: items,
+			Label: fmt.Sprintf("=== DASHBOARD (%s) ===", strings.ToUpper(user.RoleName)),
+			Items: menu,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . | cyan | bold }}",
+				Active:   "{{ . | green | bold }}",
+				Inactive: "  {{ . | white }}",
+				Selected: "{{ . | bold }}",
+			},
 		}
 
 		i, _, err := prompt.Run()
 		if err != nil {
-			fmt.Printf("Prompt failed: %v\n", err)
+			fmt.Println("Prompt failed:", err)
 			return
 		}
 
-		switch strings.ToLower(role) {
-		case "admin":
-			switch i {
-			case 0:
-				fmt.Println("Admin: See Products")
-			case 1:
-				fmt.Println("Admin: Manage Orders")
-			case 2:
-				fmt.Println("Admin: Report")
-			case 3:
-				h.AddStaff()
-			case 4:
-				fmt.Println("Logging out...")
-				return
-			}
-		case "staff":
-			switch i {
-			case 0:
-				fmt.Println("Staff: See Products")
-			case 1:
-				fmt.Println("Staff: Manage Orders")
-			case 2:
-				fmt.Println("Staff: Report")
-			case 3:
-				fmt.Println("Logging out...")
-				return
-			}
-		case "user":
-			switch i {
-			case 0:
-				fmt.Println("User: Create Order")
-			case 1:
-				fmt.Println("User: My Orders")
-			case 2:
-				fmt.Println("User: History")
-			case 3:
-				fmt.Println("Logging out...")
-				return
-			}
+		if h.handleDashboardChoice(user.RoleName, i) {
+			return
 		}
 	}
+}
+
+func (h *UserHandler) getMenuItems(role string) []string {
+	switch strings.ToLower(role) {
+	case "admin":
+		return []string{"See Products", "Manage Orders", "Report", "Add Staff", "Logout"}
+	case "staff":
+		return []string{"See Products", "Manage Orders", "Report", "Logout"}
+	case "user":
+		return []string{"Create Order", "My Orders", "History", "Logout"}
+	default:
+		return []string{"Logout"}
+	}
+}
+
+func (h *UserHandler) handleDashboardChoice(role string, choice int) bool {
+	switch strings.ToLower(role) {
+	case "admin":
+		switch choice {
+		case 0:
+			fmt.Println("Admin: See Products")
+		case 1:
+			fmt.Println("Admin: Manage Orders")
+		case 2:
+			fmt.Println("Admin: Report")
+		case 3:
+			h.AddStaff()
+		case 4:
+			fmt.Println("Logging out...")
+			return true
+		}
+	case "staff":
+		switch choice {
+		case 0:
+			fmt.Println("Staff: See Products")
+		case 1:
+			fmt.Println("Staff: Manage Orders")
+		case 2:
+			fmt.Println("Staff: Report")
+		case 3:
+			fmt.Println("Logging out...")
+			return true
+		}
+	case "user":
+		switch choice {
+		case 0:
+			fmt.Println("User: Create Order")
+		case 1:
+			fmt.Println("User: My Orders")
+		case 2:
+			fmt.Println("User: History")
+		case 3:
+			fmt.Println("Logging out...")
+			return true
+		}
+	default:
+		fmt.Println("Invalid role.")
+		return true
+	}
+	return false
 }

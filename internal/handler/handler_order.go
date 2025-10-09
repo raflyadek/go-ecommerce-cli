@@ -73,11 +73,11 @@ func (h *ReportHandler) PrintCompletedOrderReport() {
 		fmt.Printf("| %-7d | %-8s | %-10.2f | %-8s | %-14s |\n",
 			order.ID,
 			order.CustomerName,
-			order.TotalAmount,
-			order.StatusName, // Menggunakan StatusName
+			float64(order.TotalAmount),
+			order.StatusName,
 			dateStr,
 		)
-		totalRevenue += order.TotalAmount
+		totalRevenue += float64(order.TotalAmount)
 		totalCompletedOrders++
 	}
 
