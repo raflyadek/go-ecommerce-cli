@@ -36,7 +36,7 @@ func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHand
 }
 
 // --- LOGIN ---
-func (h *UserHandler) Login() bool {
+func (h *UserHandler) Login() *entity.User {
     fmt.Println("\n=== LOGIN ===")
 
     fmt.Print("Enter email: ")
@@ -48,29 +48,24 @@ func (h *UserHandler) Login() bool {
     fmt.Println()
     if err != nil {
         fmt.Println("Error reading password:", err)
-        return false
+        return nil
     }
     password := strings.TrimSpace(string(bytePassword))
 
     user, err := h.UserRepo.GetByEmail(email)
     if err != nil {
-        if email == "" {
-            fmt.Println("Email cannot be empty.")
-        } else {
-            fmt.Println("Error:", err)
-        }
-        return false
+        fmt.Println("Error:", err)
+        return nil
     }
 
     if !utils.CheckPassword(password, user.Password) {
         fmt.Println("Password incorrect")
-        return false
+        return nil
     }
 
     fmt.Printf("Welcome, %s! Role: %s\n", user.Name, user.RoleName)
     h.ProductHandler.ShowAllProducts()
-    h.ShowDashboard(&user)
-    return true
+    return &user
 }
 
 // --- REGISTER USER ---
@@ -121,7 +116,7 @@ func (h *UserHandler) AddStaff() { fmt.Println("\n=== ADD STAFF ===")
 }
 
 // --- DASHBOARD MENU ---
-func (h *UserHandler) ShowDashboard(user *entity.User) {
+func (h *UserHandler) ShowDashboard(user *entity.User) bool {
 	for {
 		var menu []string
 		switch user.RoleName {
@@ -147,7 +142,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		i, _, err := prompt.Run()
 		if err != nil {
 			fmt.Println("Prompt failed:", err)
-			return
+			return true
 		}
 
 		switch strings.ToLower(user.RoleName) {
@@ -162,8 +157,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 3:
 				h.AddStaff()
 			case 4:
-				fmt.Println("Logging out...")
-				return
+				return true
 			}
 		case "staff":
 			switch i {
@@ -175,7 +169,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 				h.ReportMenu()
 			case 3:
 				fmt.Println("Logging out...")
-				return
+				return true
 			}
 		case "user":
 			switch i {
@@ -187,10 +181,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 				h.OrderHandler.HistoryOrdersCLI(user.ID)
 			case 3:
 				fmt.Println("Logging out...")
-				return
-			default:
-				fmt.Println("Invalid role.")
-				return
+				return true
 			}
 		}
 	}
