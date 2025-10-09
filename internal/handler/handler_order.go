@@ -47,8 +47,6 @@ func (h *OrderHandler) ShowCompletedOrders() {
 		totalOrders++
 	}
 
-
-
 	fmt.Printf("\n> Total Completed Orders: %d\n", totalOrders)
 	fmt.Printf("> Total Revenue: Rp%.2f\n", totalRevenue)
 
@@ -56,7 +54,7 @@ func (h *OrderHandler) ShowCompletedOrders() {
 	fmt.Scanln()
 }
 func (h *OrderHandler) ShowUserReport() {
-	fmt.Println("\n===== User Report ===== (\"Ctrl+C\" to return to dashboard)\n")
+	fmt.Printf("\n===== User Report ===== (\"Ctrl+C\" to return to dashboard)\n")
 	fmt.Print("Search by ID: ")
 	var userID int
 	fmt.Scanln(&userID)
@@ -90,13 +88,13 @@ func (h *OrderHandler) ShowUserReport() {
 
 	fmt.Printf("\n> Summary by User\n")
 	fmt.Printf("%s: %d Orders (Total Rp%.2f)\n", userName, len(orders), totalAmount)
-	
+
 	fmt.Print("\nPress ENTER to continue...")
 	fmt.Scanln()
 }
 
 func (h *OrderHandler) ShowStockReport() {
-	fmt.Println("\n===== Stock Report (Daily Summary) ===== (\"Ctrl+C\" to return to dashboard)\n")
+	fmt.Printf("\n===== Stock Report (Daily Summary) ===== (\"Ctrl+C\" to return to dashboard)\n")
 	fmt.Print("Input Date: ")
 	var dateInput string
 	fmt.Scanln(&dateInput)
@@ -114,7 +112,7 @@ func (h *OrderHandler) ShowStockReport() {
 			stock.ProductID,
 			stock.ProductName,
 			0, // Stock In - tidak ada data movement
-			0, // Stock Out - tidak ada data movement  
+			0, // Stock Out - tidak ada data movement
 			stock.CurrentStock,
 		)
 	}

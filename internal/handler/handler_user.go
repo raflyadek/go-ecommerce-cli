@@ -157,7 +157,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 1:
 				fmt.Println("Admin: Manage Orders")
 			case 2:
-				fmt.Println("Admin: Report")
+				h.ReportMenu()
 			case 3:
 				h.AddStaff()
 			case 4:
@@ -171,7 +171,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 1:
 				fmt.Println("Staff: Manage Orders")
 			case 2:
-				fmt.Println("Staff: Report")
+				h.ReportMenu()
 			case 3:
 				fmt.Println("Logging out...")
 				return
@@ -190,6 +190,43 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			}
 		default:
 			fmt.Println("Invalid role.")
+			return
+		}
+	}
+}
+func (h *UserHandler) ReportMenu() {
+	for {
+		fmt.Println("\n===== Report Menu =====")
+
+		menu := []string{
+			"User Report",
+			"Order Report",
+			"Stock Report",
+			"Back to Dashboard",
+		}
+
+		prompt := promptui.Select{
+			Label: "Select Report Type",
+			Items: menu,
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			fmt.Println("Prompt failed:", err)
+			return
+		}
+
+		switch i {
+		case 0:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowUserReport()
+		case 1:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowCompletedOrders()
+		case 2:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowStockReport()
+		case 3:
 			return
 		}
 	}
