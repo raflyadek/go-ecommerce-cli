@@ -14,6 +14,10 @@ type ReportRepository interface {
 	GetStockReport() ([]entity.StockReport, error)
 	GetBestSellingProducts() ([]entity.BestSellingProduct, error)
 	GetReportSummary() (entity.ReportSummary, error)
+	GetTotalUsers() (int, error)
+	GetTotalOrders() (int, error)
+	GetTotalRevenue() (float64, error)
+	GetAvgOrderValue() (float64, error)
 }
 
 type ReportRepo struct {
@@ -306,4 +310,28 @@ func (r *ReportRepo) GetReportSummary() (entity.ReportSummary, error) {
 	}
 
 	return summary, nil
+}
+
+func (r *ReportRepo) GetTotalUsers() (int, error) {
+	var count int
+	err := r.DB.QueryRow("SELECT COUNT(*) FROM users WHERE role_id = 3").Scan(&count)
+	return count, err
+}
+
+func (r *ReportRepo) GetTotalOrders() (int, error) {
+	var count int
+	err := r.DB.QueryRow("SELECT COUNT(*) FROM orders").Scan(&count)
+	return count, err
+}
+
+func (r *ReportRepo) GetTotalRevenue() (float64, error) {
+	var revenue float64
+	err := r.DB.QueryRow("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE status_id IN (2,3,4)").Scan(&revenue)
+	return revenue, err
+}
+
+func (r *ReportRepo) GetAvgOrderValue() (float64, error) {
+	var avg float64
+	err := r.DB.QueryRow("SELECT COALESCE(AVG(total_amount), 0) FROM orders WHERE status_id IN (2,3,4)").Scan(&avg)
+	return avg, err
 }

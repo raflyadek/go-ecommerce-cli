@@ -49,6 +49,26 @@ func (m *MockReportRepository) GetReportSummary() (entity.ReportSummary, error) 
 	return args.Get(0).(entity.ReportSummary), args.Error(1)
 }
 
+func (m *MockReportRepository) GetTotalUsers() (int, error) {
+	args := m.Called()
+	return args.Get(0).(int), args.Error(1)
+}
+
+func (m *MockReportRepository) GetTotalOrders() (int, error) {
+	args := m.Called()
+	return args.Get(0).(int), args.Error(1)
+}
+
+func (m *MockReportRepository) GetTotalRevenue() (float64, error) {
+	args := m.Called()
+	return args.Get(0).(float64), args.Error(1)
+}
+
+func (m *MockReportRepository) GetAvgOrderValue() (float64, error) {
+	args := m.Called()
+	return args.Get(0).(float64), args.Error(1)
+}
+
 func TestReportHandler_ShowBestSellingProducts_Success(t *testing.T) {
 	mockRepo := new(MockReportRepository)
 	handler := &ReportHandler{ReportRepo: mockRepo}

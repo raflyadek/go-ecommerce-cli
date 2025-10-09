@@ -6,6 +6,8 @@ import (
 	"go-ecommerce-cli/internal/entity"
 	"go-ecommerce-cli/internal/repository"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/manifoldco/promptui"
 	"github.com/olekukonko/tablewriter"
@@ -22,7 +24,7 @@ func NewReportHandler(db *sql.DB) *ReportHandler {
 
 func (h *ReportHandler) ShowUserReport() {
 	fmt.Printf("\n===== User Report ===== (\"Ctrl+C\" to return to dashboard)\n")
-	
+
 	searchOptions := []string{"Search by ID", "Search by Name"}
 	prompt := promptui.Select{
 		Label: "Choose Search Option",
@@ -199,21 +201,79 @@ func (h *ReportHandler) ShowBestSellingProducts() {
 }
 
 func (h *ReportHandler) ShowReportSummary() {
-	summary, err := h.ReportRepo.GetReportSummary()
-	if err != nil {
-		fmt.Println("Error retrieving report summary:", err)
-		return
+	fmt.Println("\n===== Report Summary ===== (Loading...)")
+	start := time.Now()
+
+	// Channel untuk menerima hasil dari goroutine
+	type result struct {
+		name  string
+		value interface{}
+		err   error
 	}
 
-	fmt.Println("\n===== Report Summary =====")
+	resultChan := make(chan result, 4)
+	var wg sync.WaitGroup
+
+	// Goroutine 1: Total Users
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := h.ReportRepo.GetTotalUsers()
+		resultChan <- result{"Total Users", count, err}
+	}()
+
+	// Goroutine 2: Total Orders
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := h.ReportRepo.GetTotalOrders()
+		resultChan <- result{"Total Orders", count, err}
+	}()
+
+	// Goroutine 3: Total Revenue
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		revenue, err := h.ReportRepo.GetTotalRevenue()
+		resultChan <- result{"Total Revenue", revenue, err}
+	}()
+
+	// Goroutine 4: Average Order Value
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		avg, err := h.ReportRepo.GetAvgOrderValue()
+		resultChan <- result{"Average Order Value", avg, err}
+	}()
+
+	// Tutup channel setelah semua goroutine selesai
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
+
+	// Kumpulkan hasil dari semua goroutine
+	results := make(map[string]interface{})
+	for res := range resultChan {
+		if res.err != nil {
+			fmt.Printf("Error retrieving %s: %v\n", res.name, res.err)
+			return
+		}
+		results[res.name] = res.value
+	}
+
+	elapsed := time.Since(start)
+	fmt.Printf("\n===== Report Summary ===== (Loaded in %v)\n", elapsed)
+
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Metric", "Value"})
 
+	// Format hasil sesuai tipe data
 	rows := [][]string{
-		{"Total Users", fmt.Sprintf("%d", summary.TotalUsers)},
-		{"Total Orders", fmt.Sprintf("%d", summary.TotalOrders)},
-		{"Total Revenue", fmt.Sprintf("Rp %.2f", summary.TotalRevenue)},
-		{"Average Order Value", fmt.Sprintf("Rp %.2f", summary.AvgOrderValue)},
+		{"Total Users", fmt.Sprintf("%d", results["Total Users"].(int))},
+		{"Total Orders", fmt.Sprintf("%d", results["Total Orders"].(int))},
+		{"Total Revenue", fmt.Sprintf("Rp %.2f", results["Total Revenue"].(float64))},
+		{"Average Order Value", fmt.Sprintf("Rp %.2f", results["Average Order Value"].(float64))},
 	}
 
 	for _, row := range rows {
