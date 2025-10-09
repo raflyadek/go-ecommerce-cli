@@ -184,7 +184,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 1:
 				h.OrderHandler.MyOrdersCLI(user.ID)
 			case 2:
-				fmt.Println("User: History")
+				h.OrderHandler.HistoryOrdersCLI(user.ID)
 			case 3:
 				fmt.Println("Logging out...")
 				return
@@ -271,10 +271,11 @@ func ManageOrdersMenu(orderHandler *OrderHandler) {
 
 		switch i {
 		case 0:
-			fmt.Println("View All Orders - TBD")
+			orderHandler.AllOrdersCLI()
 		case 1:
-			fmt.Println("View Order Details - TBD")
+			orderHandler.ViewOrderDetailsCLI()
 		case 2:
+			orderHandler.AllOrdersCLI()
 			orderHandler.UpdateOrderStatusCLI()
 		case 3:
 			return

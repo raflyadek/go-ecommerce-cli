@@ -140,6 +140,93 @@ func (h *OrderHandler) findProductByIDOrName(input string) (entity.Product, erro
 	return product, nil
 }
 
+func (h *OrderHandler) AllOrdersCLI() {
+    orders, err := h.OrderRepo.GetAllOrders()
+    if err != nil {
+        fmt.Println("Failed to fetch orders:", err)
+        return
+    }
+
+    if len(orders) == 0 {
+        fmt.Println("You have no orders yet.")
+        return
+    }
+
+    fmt.Println("\n=== All Orders ===")
+    table := tablewriter.NewWriter(os.Stdout)
+    table.SetHeader([]string{"ID", "Status", "Total (Rp)", "Items", "Order Date"})
+
+    for _, o := range orders {
+        row := []string{
+            fmt.Sprintf("%d", o.ID),
+            o.Status,
+            fmt.Sprintf("%.2f", o.Total),
+            fmt.Sprintf("%d", o.ItemCount),
+            o.OrderDate,
+        }
+        table.Append(row)
+    }
+
+    table.Render()
+}
+
+func (h *OrderHandler) HistoryOrdersCLI(userID int) {
+    orders, err := h.OrderRepo.GetHistoryOrders(userID)
+    if err != nil {
+        fmt.Println("Failed to fetch orders:", err)
+        return
+    }
+
+    if len(orders) == 0 {
+        fmt.Println("You have no orders yet.")
+        return
+    }
+
+    fmt.Println("\n=== Histories ===")
+    table := tablewriter.NewWriter(os.Stdout)
+    table.SetHeader([]string{"ID", "Status", "Total (Rp)", "Items", "Order Date"})
+
+    for _, o := range orders {
+        row := []string{
+            fmt.Sprintf("%d", o.ID),
+            o.Status,
+            fmt.Sprintf("%.2f", o.Total),
+            fmt.Sprintf("%d", o.ItemCount),
+            o.OrderDate,
+        }
+        table.Append(row)
+    }
+
+    table.Render()
+
+    fmt.Print("View order details with ID: ")
+    var orderID int
+    fmt.Scanln(&orderID)
+
+    items, order, err := h.OrderRepo.GetOrderDetails(orderID)
+    if err != nil {
+        fmt.Println("Failed to fetch order details:", err)
+        return
+    }
+
+    fmt.Printf("\nOrder ID: %d, Total: %.2f\n", order.ID, order.TotalAmount)
+    fmt.Println("Items:")
+
+    itemTable := tablewriter.NewWriter(os.Stdout)
+    itemTable.SetHeader([]string{"Product Name", "Quantity", "Price (Rp)"})
+
+    for _, item := range items {
+        row := []string{
+            item.ProductName,
+            fmt.Sprintf("%d", item.Quantity),
+            fmt.Sprintf("%.2f", item.Price),
+        }
+        itemTable.Append(row)
+    }
+
+    itemTable.Render()
+}
+
 func (h *OrderHandler) MyOrdersCLI(userID int) {
     orders, err := h.OrderRepo.GetUserOrders(userID)
     if err != nil {
@@ -169,7 +256,7 @@ func (h *OrderHandler) MyOrdersCLI(userID int) {
 
     table.Render()
 
-    fmt.Print("View order details with ID (\"CTRL + C\" to return): ")
+    fmt.Print("View order details with ID: ")
     var orderID int
     fmt.Scanln(&orderID)
 
@@ -200,7 +287,7 @@ func (h *OrderHandler) MyOrdersCLI(userID int) {
 // UpdateOrderStatusCLI allows admin/staff to update the status of an order
 func (h *OrderHandler) UpdateOrderStatusCLI() {
     reader := bufio.NewReader(os.Stdin)
-    fmt.Println("\n=== Update Order Status === (\"Ctrl + C\" to return to dashboard)")
+    fmt.Println("\n=== Update Order Status ===")
 
     fmt.Print("Enter Order ID: ")
     idStr, _ := reader.ReadString('\n')
@@ -222,4 +309,63 @@ func (h *OrderHandler) UpdateOrderStatusCLI() {
     }
 
     fmt.Printf("Order #%d status updated successfully!\n", orderID)
+}
+
+func (h *OrderHandler) ViewOrderDetailsCLI() {
+    reader := bufio.NewReader(os.Stdin)
+
+    fmt.Println("\n=== View Order Details ===")
+    fmt.Println("=== (“Ctrl + C” to return to dashboard) ===")
+
+    fmt.Print("Input Order ID: ")
+    idStr, _ := reader.ReadString('\n')
+    idStr = strings.TrimSpace(idStr)
+    orderID, err := strconv.Atoi(idStr)
+    if err != nil {
+        fmt.Println("Invalid Order ID")
+        return
+    }
+
+    items, order, err := h.OrderRepo.GetOrderDetails(orderID)
+    if err != nil {
+        fmt.Println("Failed to fetch order details:", err)
+        return
+    }
+
+    // Ambil nama customer (user) dari database
+    var customerName string
+    err = h.DB.QueryRow("SELECT name FROM users WHERE id = $1", order.UserID).Scan(&customerName)
+    if err != nil {
+        customerName = "Unknown"
+    }
+
+    fmt.Printf("\n=== Order #%d Details ===\n", order.ID)
+    fmt.Printf("Customer     : %s\n", customerName)
+    fmt.Printf("Status       : %s\n", h.getStatusName(order.StatusID))
+    fmt.Printf("Order Date   : %s\n", order.CreatedAt.Format("2006-01-02 15:04:05"))
+    fmt.Printf("Updated At   : %s\n", order.UpdatedAt.Format("2006-01-02 15:04:05"))
+    fmt.Println("-------------------------------------------------")
+    fmt.Printf("%-20s | %-3s | %-12s | %-12s\n", "Product Name", "Qty", "Price (Rp)", "Subtotal (Rp)")
+    fmt.Println("-------------------------------------------------")
+
+    total := 0.0
+    for _, item := range items {
+        subtotal := float64(item.Quantity) * item.Price
+        fmt.Printf("%-20s | %-3d | %-12.2f | %-12.2f\n",
+            item.ProductName, item.Quantity, item.Price, subtotal)
+        total += subtotal
+    }
+
+    fmt.Println("-------------------------------------------------")
+    fmt.Printf("Total Amount: Rp%.2f\n", total)
+}
+
+// getStatusName ambil status_name dari status_id
+func (h *OrderHandler) getStatusName(statusID int) string {
+    var statusName string
+    err := h.DB.QueryRow("SELECT status_name FROM status_order WHERE id = $1", statusID).Scan(&statusName)
+    if err != nil {
+        return "Unknown"
+    }
+    return statusName
 }
