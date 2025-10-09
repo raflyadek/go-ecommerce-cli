@@ -9,7 +9,7 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-type DashboardHandler struct {
+type DashboardHandler struct{
 	OrderRepo repository.OrderRepository
 }
 
@@ -71,6 +71,7 @@ func (h *DashboardHandler) showReportMenu() {
 			"Back to Dashboard",
 		}
 
+		fmt.Println("\n===== Report Menu =====")
 		prompt := promptui.Select{
 			Label: "Select option",
 			Items: reportMenu,
@@ -81,7 +82,6 @@ func (h *DashboardHandler) showReportMenu() {
 			return
 		}
 
-		fmt.Println("\n===== Report Menu =====")
 		switch i {
 		case 0:
 			orderHandler := NewOrderHandler(h.OrderRepo)
