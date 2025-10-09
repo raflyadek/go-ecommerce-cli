@@ -59,19 +59,19 @@ func LoginCLI(db *sql.DB) {
 
 		switch i {
 		case 0:
-			waitEnter()
+			// waitEnter()
 			if userHandler.Login() {
 				return
 			}
 		case 1:
-			waitEnter()
+			// waitEnter()
 			userHandler.RegisterUserCLI()
 		case 2:
 			fmt.Println("Goodbye!")
 			return
 		default:
 			fmt.Println("Invalid option")
-			waitEnter()
+			// waitEnter()
 		}
 	}
 }
