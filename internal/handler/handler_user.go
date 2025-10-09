@@ -14,16 +14,19 @@ import (
 )
 
 type UserHandler struct {
-	UserRepo *repository.UserRepository
+	UserRepo       *repository.UserRepository
 	ProductHandler *ProductHandler
-	Reader   *bufio.Reader
-	DB       *sql.DB
+	OrderHandler   *OrderHandler
+	Reader         *bufio.Reader
+	DB             *sql.DB
 }
 
-func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler) *UserHandler {
+// Tambahkan orderHandler di constructor
+func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler, orderHandler *OrderHandler) *UserHandler {
 	return &UserHandler{
 		UserRepo:       userRepo,
 		ProductHandler: productHandler,
+		OrderHandler:   orderHandler,
 		Reader:         bufio.NewReader(os.Stdin),
 		DB:             db,
 	}
@@ -119,11 +122,9 @@ func (h *UserHandler) AddStaff() {
 	fmt.Printf("Staff '%s' (%s) added successfully!\n", name, email)
 }
 
-// --- DASHBOARD MENU (Merged version) ---
+// --- DASHBOARD MENU ---
 func (h *UserHandler) ShowDashboard(user *entity.User) {
 	for {
-		// ERROR: method getMenuItems tidak ada
-		// menu := h.getMenuItems(user.RoleName)
 		var menu []string
 		switch user.RoleName {
 		case "admin":
@@ -151,16 +152,15 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			return
 		}
 
-		// ERROR: variable 'role' tidak ada, harusnya user.RoleName
 		switch strings.ToLower(user.RoleName) {
 		case "admin":
 			switch i {
 			case 0:
-				SeeProductsMenu(h.ProductHandler) 
+				SeeProductsMenu(h.ProductHandler)
 			case 1:
 				ManageOrdersMenu()
 			case 2:
-				ReportMenu()
+				h.ReportMenu()
 			case 3:
 				h.AddStaff()
 			case 4:
@@ -174,7 +174,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 1:
 				ManageOrdersMenu()
 			case 2:
-				ReportMenu()
+				h.ReportMenu()
 			case 3:
 				fmt.Println("Logging out...")
 				return
@@ -182,7 +182,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		case "user":
 			switch i {
 			case 0:
-				fmt.Println("User: Create Order")
+				// h.OrderHandler.CreateOrderCLI(user.ID)
 			case 1:
 				fmt.Println("User: My Orders")
 			case 2:
@@ -198,6 +198,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 	}
 }
 
+// --- PRODUCT MENU ---
 func SeeProductsMenu(ProductHandler *ProductHandler) {
 	for {
 		fmt.Println("\n====================================================")
@@ -230,18 +231,18 @@ func SeeProductsMenu(ProductHandler *ProductHandler) {
 
 		switch i {
 		case 0:
-			ProductHandler.AddProducts()// ProductHandler.AddProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			ProductHandler.AddProducts()
 		case 1:
-			ProductHandler.UpdateProducts()// ProductHandler.UpdateProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			ProductHandler.UpdateProducts()
 		case 2:
-			ProductHandler.DeleteProducts()// ProductHandler.DeleteProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			ProductHandler.DeleteProducts()
 		case 3:
-			return // kembali ke dashboard
+			return
 		}
 	}
 }
 
-
+// --- MANAGE ORDERS MENU ---
 func ManageOrdersMenu() {
 	for {
 		fmt.Println("\n=== Manage Orders ===")
@@ -272,18 +273,19 @@ func ManageOrdersMenu() {
 
 		switch i {
 		case 0:
-			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			fmt.Println("View All Orders - TBD")
 		case 1:
-			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			fmt.Println("View Order Details - TBD")
 		case 2:
-			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			fmt.Println("Update Order Status - TBD")
 		case 3:
-			return // kembali ke dashboard
+			return
 		}
 	}
 }
 
-func ReportMenu() {
+// --- REPORT MENU ---
+func (h *UserHandler) ReportMenu() {
 	for {
 		fmt.Println("\n=== Report Menu ===")
 
@@ -311,13 +313,14 @@ func ReportMenu() {
 			return
 		}
 
+		reportHandler := NewReportHandler(h.DB)
 		switch i {
 		case 0:
-			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			reportHandler.ShowUserReport()
 		case 1:
-			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING))
+			reportHandler.ShowCompletedOrders()
 		case 2:
-			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			reportHandler.ShowStockReport()
 		case 3:
 			return
 		}
