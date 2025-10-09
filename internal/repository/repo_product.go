@@ -61,13 +61,43 @@ func (r *ProductRepository) DeleteProduct(id int) error {
 
 func (r *ProductRepository) UpdateProduct(name, description string, price, stock, id int) error {
 	_, err := r.DB.Exec(`
-	UPDATE products SET name = $1, description = $2, price = $3, stock = $4
-	WHERE id = $5
+		UPDATE products SET name = $1, description = $2, price = $3, stock = $4
+		WHERE id = $5
 	`, name, description, price, stock, id)
 
 	if err != nil {
 		log.Println("Failed to update product", err)
 		return err
 	}
+	return err
+}
+
+func (r *ProductRepository) ShowProductById(id int) error {
+	rows, err := r.DB.Query(`
+		SELECT p.name, p.description, p.price, p.stock FROM products WHERE id = $1
+	`, id)
+
+	if err != nil {
+		log.Println("Error fetching data from table products:", err)
+		return err
+	}
+
+	// var products []entity.Product
+
+	for rows.Next() {
+		var order entity.Product
+
+		if err := rows.Scan(
+			&order.ID,
+			&order.Name, 
+			&order.Description, 
+			&order.Price, 
+			&order.Stock,
+			); err != nil {
+				log.Println("error scanning product:", err)
+			}
+		fmt.Printf("name: %s \ndescription: %s \nprice: %d \np.stock %d\n", order.Name, order.Description, order.Price, order.Stock)
+	}
+
 	return err
 }
