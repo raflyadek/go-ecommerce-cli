@@ -232,9 +232,9 @@ func SeeProductsMenu(ProductHandler *ProductHandler) {
 		case 0:
 			ProductHandler.AddProducts()// ProductHandler.AddProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 1:
-			// ProductHandler.UpdateProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			ProductHandler.UpdateProducts()// ProductHandler.UpdateProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 2:
-			// ProductHandler.DeleteProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			ProductHandler.DeleteProducts()// ProductHandler.DeleteProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 3:
 			return // kembali ke dashboard
 		}
