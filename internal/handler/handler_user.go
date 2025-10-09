@@ -160,6 +160,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 1:
 				ManageOrdersMenu()
 			case 2:
+				h.ReportMenu()
 				ReportMenu()
 			case 3:
 				h.AddStaff()
@@ -174,6 +175,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 1:
 				ManageOrdersMenu()
 			case 2:
+				h.ReportMenu()
 				ReportMenu()
 			case 3:
 				fmt.Println("Logging out...")
@@ -194,6 +196,8 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 				fmt.Println("Invalid role.")
 				return
 			}
+		default:
+			fmt.Println("Invalid role.")
 		}
 	}
 }
@@ -240,6 +244,9 @@ func SeeProductsMenu(ProductHandler *ProductHandler) {
 		}
 	}
 }
+func (h *UserHandler) ReportMenu() {
+	for {
+		fmt.Println("\n===== Report Menu =====")
 
 
 func ManageOrdersMenu() {
@@ -313,6 +320,14 @@ func ReportMenu() {
 
 		switch i {
 		case 0:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowUserReport()
+		case 1:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowCompletedOrders()
+		case 2:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowStockReport()
 			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 1:
 			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING))
@@ -322,4 +337,5 @@ func ReportMenu() {
 			return
 		}
 	}
+}
 }

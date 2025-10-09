@@ -17,7 +17,7 @@ INSERT INTO status_order (status_name) VALUES
 INSERT INTO users (email, password, name, role_id) VALUES
 ('admin@mail.com', 'admin123', 'Admin One', 1),
 ('staff@mail.com', 'staff123', 'Staff One', 2),
-('user@mail.com', 'user123', 'User One', 3);
+('user@mail.com', 'user123', 'User One', 3),
 
 -- Produk contoh (pakaian)
 INSERT INTO products (name, description, price, stock) VALUES
