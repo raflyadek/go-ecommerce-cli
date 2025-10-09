@@ -15,21 +15,6 @@ type Order struct {
 	Items       []OrderItem
 }
 
-type UserReport struct {
-	UserName   string
-	UserID     int
-	OrderCount int
-	TotalSpent int
-}
-
-type StockReport struct {
-	ProductName  string
-	ProductID    int
-	StockIn      int
-	StockOut     int
-	CurrentStock int
-}
-
 type OrderItem struct {
 	ProductName string
 	OrderID   int
