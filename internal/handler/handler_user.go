@@ -14,10 +14,10 @@ import (
 )
 
 type UserHandler struct {
-	UserRepo *repository.UserRepository
+	UserRepo       *repository.UserRepository
 	ProductHandler *ProductHandler
-	Reader   *bufio.Reader
-	DB       *sql.DB
+	Reader         *bufio.Reader
+	DB             *sql.DB
 }
 
 func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler) *UserHandler {
@@ -119,11 +119,9 @@ func (h *UserHandler) AddStaff() {
 	fmt.Printf("Staff '%s' (%s) added successfully!\n", name, email)
 }
 
-// --- DASHBOARD MENU (Merged version) ---
+// --- DASHBOARD MENU ---
 func (h *UserHandler) ShowDashboard(user *entity.User) {
 	for {
-		// ERROR: method getMenuItems tidak ada
-		// menu := h.getMenuItems(user.RoleName)
 		var menu []string
 		switch user.RoleName {
 		case "admin":
@@ -151,17 +149,15 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			return
 		}
 
-		// ERROR: variable 'role' tidak ada, harusnya user.RoleName
 		switch strings.ToLower(user.RoleName) {
 		case "admin":
 			switch i {
 			case 0:
-				SeeProductsMenu(h.ProductHandler) 
+				SeeProductsMenu(h.ProductHandler)
 			case 1:
 				ManageOrdersMenu()
 			case 2:
 				h.ReportMenu()
-				ReportMenu()
 			case 3:
 				h.AddStaff()
 			case 4:
@@ -176,7 +172,6 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 				ManageOrdersMenu()
 			case 2:
 				h.ReportMenu()
-				ReportMenu()
 			case 3:
 				fmt.Println("Logging out...")
 				return
@@ -192,12 +187,48 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 3:
 				fmt.Println("Logging out...")
 				return
-			default:
-				fmt.Println("Invalid role.")
-				return
 			}
 		default:
 			fmt.Println("Invalid role.")
+			return
+		}
+	}
+}
+
+func (h *UserHandler) ReportMenu() {
+	for {
+		fmt.Println("\n===== Report Menu =====")
+
+		menu := []string{
+			"User Report",
+			"Order Report",
+			"Stock Report",
+			"Back to Dashboard",
+		}
+
+		prompt := promptui.Select{
+			Label: "Select Report Type",
+			Items: menu,
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			fmt.Println("Prompt failed:", err)
+			return
+		}
+
+		switch i {
+		case 0:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowUserReport()
+		case 1:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowCompletedOrders()
+		case 2:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowStockReport()
+		case 3:
+			return
 		}
 	}
 }
@@ -234,22 +265,16 @@ func SeeProductsMenu(ProductHandler *ProductHandler) {
 
 		switch i {
 		case 0:
-			ProductHandler.AddProducts()// ProductHandler.AddProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			ProductHandler.AddProducts()
 		case 1:
-			ProductHandler.UpdateProducts()// ProductHandler.UpdateProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			ProductHandler.UpdateProducts()
 		case 2:
-			ProductHandler.DeleteProducts()// ProductHandler.DeleteProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			ProductHandler.DeleteProducts()
 		case 3:
-			return // kembali ke dashboard
+			return
 		}
 	}
 }
-
-// Report Menu
-func (h *UserHandler) ReportMenu() {
-	for {
-		fmt.Println("\n===== Report Menu =====")
-
 
 func ManageOrdersMenu() {
 	for {
@@ -290,54 +315,4 @@ func ManageOrdersMenu() {
 			return // kembali ke dashboard
 		}
 	}
-}
-
-func ReportMenu() {
-	for {
-		fmt.Println("\n=== Report Menu ===")
-
-		menu := []string{
-			"User Report",
-			"Order Report",
-			"Stock Report",
-			"Back to Dashboard",
-		}
-
-		prompt := promptui.Select{
-			Label: "Select Report Type",
-			Items: menu,
-			Templates: &promptui.SelectTemplates{
-				Label:    "{{ . | cyan | bold }}",
-				Active:   "> {{ . | green | bold }}",
-				Inactive: "  {{ . | white }}",
-				Selected: "{{ . | bold }}",
-			},
-		}
-
-		i, _, err := prompt.Run()
-		if err != nil {
-			fmt.Println("Prompt failed:", err)
-			return
-		}
-
-		switch i {
-		case 0:
-			reportHandler := NewReportHandler(h.DB)
-			reportHandler.ShowUserReport()
-		case 1:
-			reportHandler := NewReportHandler(h.DB)
-			reportHandler.ShowCompletedOrders()
-		case 2:
-			reportHandler := NewReportHandler(h.DB)
-			reportHandler.ShowStockReport()
-			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
-		case 1:
-			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING))
-		case 2:
-			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
-		case 3:
-			return
-		}
-	}
-}
 }
