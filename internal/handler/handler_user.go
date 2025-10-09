@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bufio"
+	"database/sql"
 	"fmt"
 	"go-ecommerce-cli/internal/entity"
 	"go-ecommerce-cli/internal/repository"
@@ -15,12 +16,14 @@ import (
 type UserHandler struct {
 	UserRepo *repository.UserRepository
 	Reader   *bufio.Reader
+	DB       *sql.DB
 }
 
-func NewUserHandler(repo *repository.UserRepository) *UserHandler {
+func NewUserHandler(repo *repository.UserRepository, db *sql.DB) *UserHandler {
 	return &UserHandler{
 		UserRepo: repo,
 		Reader:   bufio.NewReader(os.Stdin),
+		DB:       db,
 	}
 }
 
@@ -116,7 +119,17 @@ func (h *UserHandler) AddStaff() {
 // --- DASHBOARD MENU (Merged version) ---
 func (h *UserHandler) ShowDashboard(user *entity.User) {
 	for {
-		menu := h.getMenuItems(user.RoleName)
+		// ERROR: method getMenuItems tidak ada
+		// menu := h.getMenuItems(user.RoleName)
+		var menu []string
+		switch user.RoleName {
+		case "admin":
+			menu = []string{"See Products", "Manage Orders", "Report", "Add Staff", "Logout"}
+		case "staff":
+			menu = []string{"See Products", "Manage Orders", "Report", "Logout"}
+		case "user":
+			menu = []string{"Create Order", "My Orders", "History", "Logout"}
+		}
 
 		prompt := promptui.Select{
 			Label: fmt.Sprintf("=== DASHBOARD (%s) ===", strings.ToUpper(user.RoleName)),
@@ -135,68 +148,51 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			return
 		}
 
-		if h.handleDashboardChoice(user.RoleName, i) {
+		// ERROR: variable 'role' tidak ada, harusnya user.RoleName
+		switch strings.ToLower(user.RoleName) {
+		case "admin":
+			switch i {
+			case 0:
+				fmt.Println("Admin: See Products")
+			case 1:
+				fmt.Println("Admin: Manage Orders")
+			case 2:
+				fmt.Println("Admin: Report")
+			case 3:
+				h.AddStaff()
+			case 4:
+				fmt.Println("Logging out...")
+				return
+			}
+		case "staff":
+			switch i {
+			case 0:
+				fmt.Println("Staff: See Products")
+			case 1:
+				fmt.Println("Staff: Manage Orders")
+			case 2:
+				fmt.Println("Staff: Report")
+			case 3:
+				fmt.Println("Logging out...")
+				return
+			}
+		case "user":
+			switch i {
+			case 0:
+				fmt.Println("User: Create Order")
+			case 1:
+				fmt.Println("User: My Orders")
+			case 2:
+				fmt.Println("User: History")
+			case 3:
+				fmt.Println("Logging out...")
+				return
+			}
+		}
+		// ERROR: default case salah tempat, harusnya di dalam switch role
+		default:
+			fmt.Println("Invalid role.")
 			return
 		}
 	}
-}
-
-func (h *UserHandler) getMenuItems(role string) []string {
-	switch strings.ToLower(role) {
-	case "admin":
-		return []string{"See Products", "Manage Orders", "Report", "Add Staff", "Logout"}
-	case "staff":
-		return []string{"See Products", "Manage Orders", "Report", "Logout"}
-	case "user":
-		return []string{"Create Order", "My Orders", "History", "Logout"}
-	default:
-		return []string{"Logout"}
-	}
-}
-
-func (h *UserHandler) handleDashboardChoice(role string, choice int) bool {
-	switch strings.ToLower(role) {
-	case "admin":
-		switch choice {
-		case 0:
-			fmt.Println("Admin: See Products")
-		case 1:
-			fmt.Println("Admin: Manage Orders")
-		case 2:
-			fmt.Println("Admin: Report")
-		case 3:
-			h.AddStaff()
-		case 4:
-			fmt.Println("Logging out...")
-			return true
-		}
-	case "staff":
-		switch choice {
-		case 0:
-			fmt.Println("Staff: See Products")
-		case 1:
-			fmt.Println("Staff: Manage Orders")
-		case 2:
-			fmt.Println("Staff: Report")
-		case 3:
-			fmt.Println("Logging out...")
-			return true
-		}
-	case "user":
-		switch choice {
-		case 0:
-			fmt.Println("User: Create Order")
-		case 1:
-			fmt.Println("User: My Orders")
-		case 2:
-			fmt.Println("User: History")
-		case 3:
-			fmt.Println("Logging out...")
-			return true
-		}
-	default:
-		fmt.Println("Invalid role.")
-		return true
-	}
-	return false
 }

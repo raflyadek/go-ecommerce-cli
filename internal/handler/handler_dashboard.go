@@ -1,0 +1,166 @@
+package handler
+
+import (
+	"fmt"
+	"go-ecommerce-cli/internal/entity"
+	"go-ecommerce-cli/internal/repository"
+	"strings"
+
+	"github.com/manifoldco/promptui"
+)
+
+type DashboardHandler struct{
+	OrderRepo repository.OrderRepository
+}
+
+func (h *DashboardHandler) ShowDashboard(user *entity.User) {
+	for {
+		var menu []string
+		switch user.RoleName {
+		case "admin":
+			menu = []string{
+				"See Products",
+				"Manage Orders",
+				"Report",
+				"Add Staff",
+				"Logout",
+			}
+		case "staff":
+			menu = []string{
+				"See Products",
+				"Manage Orders",
+				"Report",
+				"Logout",
+			}
+		case "user":
+			menu = []string{
+				"Create Order",
+				"My Orders",
+				"History",
+				"Logout",
+			}
+		default:
+			fmt.Println("Unknown role")
+			return
+		}
+
+		prompt := promptui.Select{
+			Label: "=== Dashboard ===",
+			Items: menu,
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			fmt.Println("Prompt failed:", err)
+			return
+		}
+
+		choice := strings.TrimSpace(fmt.Sprint(i + 1))
+		if h.handleChoice(user, choice) {
+			break
+		}
+	}
+}
+
+func (h *DashboardHandler) showReportMenu() {
+	for {
+		reportMenu := []string{
+			"User Report",
+			"Order Report",
+			"Stock Report",
+			"Back to Dashboard",
+		}
+
+		fmt.Println("\n===== Report Menu =====")
+		prompt := promptui.Select{
+			Label: "Select option",
+			Items: reportMenu,
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			return
+		}
+
+		switch i {
+		case 0:
+			orderHandler := NewOrderHandler(h.OrderRepo)
+			orderHandler.ShowUserReport()
+		case 1:
+			orderHandler := NewOrderHandler(h.OrderRepo)
+			orderHandler.ShowCompletedOrders()
+		case 2:
+			orderHandler := NewOrderHandler(h.OrderRepo)
+			orderHandler.ShowStockReport()
+		case 3:
+			return
+		}
+	}
+}
+
+func (h *DashboardHandler) handleChoice(user *entity.User, choice string) bool {
+	switch user.RoleName {
+	case "admin":
+		return h.handleAdminMenu(choice)
+	case "staff":
+		return h.handleStaffMenu(choice)
+	case "user":
+		return h.handleUserMenu(choice)
+	default:
+		fmt.Println("Unknown role")
+		return false
+	}
+}
+
+func (h *DashboardHandler) handleAdminMenu(choice string) bool {
+	switch choice {
+	case "1":
+		fmt.Println("Showing all products...")
+	case "2":
+		fmt.Println("Managing orders...")
+	case "3":
+		h.showReportMenu()
+	case "4":
+		fmt.Println("Adding staff...")
+	case "5":
+		fmt.Println("Logged out.")
+		return true
+	default:
+		fmt.Println("Invalid choice.")
+	}
+	return false
+}
+
+func (h *DashboardHandler) handleStaffMenu(choice string) bool {
+	switch choice {
+	case "1":
+		fmt.Println("Showing all products...")
+	case "2":
+		fmt.Println("Managing orders...")
+	case "3":
+		h.showReportMenu()
+	case "4":
+		fmt.Println("Logged out.")
+		return true
+	default:
+		fmt.Println("Invalid choice.")
+	}
+	return false
+}
+
+func (h *DashboardHandler) handleUserMenu(choice string) bool {
+	switch choice {
+	case "1":
+		fmt.Println("Creating new order...")
+	case "2":
+		fmt.Println("Showing my orders...")
+	case "3":
+		fmt.Println("Showing order history...")
+	case "4":
+		fmt.Println("Logged out.")
+		return true
+	default:
+		fmt.Println("Invalid choice.")
+	}
+	return false
+}
