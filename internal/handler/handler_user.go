@@ -16,17 +16,16 @@ import (
 type UserHandler struct {
 	UserRepo       *repository.UserRepository
 	ProductHandler *ProductHandler
-	OrderHandler   *OrderHandler
+
 	Reader         *bufio.Reader
 	DB             *sql.DB
 }
 
 // Tambahkan orderHandler di constructor
-func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler, orderHandler *OrderHandler) *UserHandler {
+func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler) *UserHandler {
 	return &UserHandler{
 		UserRepo:       userRepo,
 		ProductHandler: productHandler,
-		OrderHandler:   orderHandler,
 		Reader:         bufio.NewReader(os.Stdin),
 		DB:             db,
 	}

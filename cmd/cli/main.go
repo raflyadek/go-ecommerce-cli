@@ -20,13 +20,8 @@ func waitEnter() {
 func LoginCLI(db *sql.DB) {
 	userRepo := repository.NewUserRepository(db)
 	productRepo := repository.NewProductRepository(db)
-	orderRepo := repository.NewOrderRepo(db) // buat order repository
-
 	productHandler := handler.NewProductHandler(productRepo)
-	orderHandler := handler.NewOrderHandler(orderRepo) // buat order handler
-
-	// Tambahkan orderHandler ke UserHandler
-	userHandler := handler.NewUserHandler(userRepo, db, productHandler, orderHandler)
+	userHandler := handler.NewUserHandler(userRepo, db, productHandler)
 
 	fmt.Println("========================================================================")
 	fmt.Println(`     

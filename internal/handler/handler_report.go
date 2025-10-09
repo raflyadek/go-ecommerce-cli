@@ -3,18 +3,19 @@ package handler
 import (
 	"database/sql"
 	"fmt"
+	"go-ecommerce-cli/internal/repository"
 	"os"
-	"time"
 
 	"github.com/olekukonko/tablewriter"
 )
 
 type ReportHandler struct {
-	DB *sql.DB
+	ReportRepo repository.ReportRepository
 }
 
 func NewReportHandler(db *sql.DB) *ReportHandler {
-	return &ReportHandler{DB: db}
+	reportRepo := repository.NewReportRepo(db)
+	return &ReportHandler{ReportRepo: reportRepo}
 }
 
 func (h *ReportHandler) ShowUserReport() {
@@ -23,46 +24,10 @@ func (h *ReportHandler) ShowUserReport() {
 	var userID int
 	fmt.Scanln(&userID)
 
-	query := `
-		SELECT 
-			o.id,
-			u.name AS customer_name,
-			o.total_amount,
-			s.status_name
-		FROM orders o
-		JOIN users u ON o.user_id = u.id
-		JOIN status_order s ON o.status_id = s.id
-		WHERE o.user_id = $1
-		ORDER BY o.created_at DESC
-	`
-
-	rows, err := h.DB.Query(query, userID)
+	orders, err := h.ReportRepo.FindUserOrders(userID)
 	if err != nil {
 		fmt.Println("Error retrieving user orders:", err)
 		return
-	}
-	defer rows.Close()
-
-	var orders []struct {
-		ID           int
-		CustomerName string
-		TotalAmount  int
-		StatusName   string
-	}
-
-	for rows.Next() {
-		var order struct {
-			ID           int
-			CustomerName string
-			TotalAmount  int
-			StatusName   string
-		}
-		err := rows.Scan(&order.ID, &order.CustomerName, &order.TotalAmount, &order.StatusName)
-		if err != nil {
-			fmt.Println("Error scanning order:", err)
-			return
-		}
-		orders = append(orders, order)
 	}
 
 	if len(orders) == 0 {
@@ -98,26 +63,16 @@ func (h *ReportHandler) ShowUserReport() {
 }
 
 func (h *ReportHandler) ShowCompletedOrders() {
-	query := `
-		SELECT 
-			o.id,
-			u.name AS customer_name,
-			o.total_amount,
-			s.status_name,
-			o.updated_at
-		FROM orders o
-		JOIN users u ON o.user_id = u.id
-		JOIN status_order s ON o.status_id = s.id
-		WHERE s.status_name = 'completed'
-		ORDER BY o.updated_at DESC
-	`
-
-	rows, err := h.DB.Query(query)
+	orders, err := h.ReportRepo.FindCompletedOrders()
 	if err != nil {
 		fmt.Println("Error retrieving completed orders:", err)
 		return
 	}
-	defer rows.Close()
+
+	if len(orders) == 0 {
+		fmt.Println("No completed orders found.")
+		return
+	}
 
 	fmt.Println("\n===== Order Report (Completed Orders) ===== (\"Ctrl+C\" to return to dashboard)")
 	fmt.Println()
@@ -128,29 +83,17 @@ func (h *ReportHandler) ShowCompletedOrders() {
 	totalOrders := 0
 	var totalRevenue float64
 
-	for rows.Next() {
-		var orderID int
-		var customerName string
-		var totalAmount int
-		var statusName string
-		var updatedAt time.Time
-
-		err := rows.Scan(&orderID, &customerName, &totalAmount, &statusName, &updatedAt)
-		if err != nil {
-			fmt.Println("Error scanning order:", err)
-			return
-		}
-
-		dateStr := updatedAt.Format("2006-01-02")
+	for _, order := range orders {
+		dateStr := order.CompletedDate.Format("2006-01-02")
 		row := []string{
-			fmt.Sprintf("%d", orderID),
-			customerName,
-			fmt.Sprintf("%.2f", float64(totalAmount)),
-			statusName,
+			fmt.Sprintf("%d", order.ID),
+			order.CustomerName,
+			fmt.Sprintf("%.2f", float64(order.TotalAmount)),
+			order.StatusName,
 			dateStr,
 		}
 		table.Append(row)
-		totalRevenue += float64(totalAmount)
+		totalRevenue += float64(order.TotalAmount)
 		totalOrders++
 	}
 
@@ -168,49 +111,22 @@ func (h *ReportHandler) ShowStockReport() {
 	var dateInput string
 	fmt.Scanln(&dateInput)
 
-	query := `
-		SELECT 
-			p.id,
-			p.name,
-			p.stock,
-			COALESCE(SUM(oi.quantity), 0) as total_sold
-		FROM products p
-		LEFT JOIN order_items oi ON p.id = oi.product_id
-		LEFT JOIN orders o ON oi.order_id = o.id
-		WHERE o.status_id IN (2,3,4) OR o.status_id IS NULL
-		GROUP BY p.id, p.name, p.stock
-		ORDER BY p.id
-	`
-
-	rows, err := h.DB.Query(query)
+	stockReports, err := h.ReportRepo.GetStockReport()
 	if err != nil {
 		fmt.Println("Error retrieving stock report:", err)
 		return
 	}
-	defer rows.Close()
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Product ID", "Product Name", "Stock In", "Stock Out", "Current Stock"})
 
-	for rows.Next() {
-		var productID int
-		var productName string
-		var currentStock int
-		var totalSold int
-
-		err := rows.Scan(&productID, &productName, &currentStock, &totalSold)
-		if err != nil {
-			fmt.Println("Error scanning stock:", err)
-			return
-		}
-
-		stockIn := currentStock + totalSold
+	for _, stock := range stockReports {
 		row := []string{
-			fmt.Sprintf("%d", productID),
-			productName,
-			fmt.Sprintf("%d", stockIn),
-			fmt.Sprintf("%d", totalSold),
-			fmt.Sprintf("%d", currentStock),
+			fmt.Sprintf("%d", stock.ProductID),
+			stock.ProductName,
+			fmt.Sprintf("%d", stock.StockIn),
+			fmt.Sprintf("%d", stock.StockOut),
+			fmt.Sprintf("%d", stock.CurrentStock),
 		}
 		table.Append(row)
 	}
