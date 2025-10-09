@@ -195,9 +195,52 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 				return
 			}
 		}
-		// ERROR: default case salah tempat, harusnya di dalam switch role
 	}
 }
+
+func SeeProductsMenu(ProductHandler *ProductHandler) {
+	for {
+		fmt.Println("\n====================================================")
+		ProductHandler.ShowAllProducts()
+		fmt.Println("====================================================")
+
+		menu := []string{
+			"Add Product",
+			"Update Product",
+			"Delete Product",
+			"Back to Dashboard",
+		}
+
+		prompt := promptui.Select{
+			Label: "Select Action",
+			Items: menu,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . | cyan | bold }}",
+				Active:   "> {{ . | green | bold }}",
+				Inactive: "  {{ . | white }}",
+				Selected: "{{ . | bold }}",
+			},
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			fmt.Println("Prompt failed:", err)
+			return
+		}
+
+		switch i {
+		case 0:
+			// ProductHandler.AddProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 1:
+			// ProductHandler.UpdateProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 2:
+			// ProductHandler.DeleteProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 3:
+			return // kembali ke dashboard
+		}
+	}
+}
+
 
 func ManageOrdersMenu() {
 	for {
