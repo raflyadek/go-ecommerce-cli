@@ -56,7 +56,7 @@ func (h *OrderHandler) ShowCompletedOrders() {
 	fmt.Scanln()
 }
 func (h *OrderHandler) ShowUserReport() {
-	fmt.Println("\n===== User Report ===== (\"Ctrl+C\" to return to dashboard)\n")
+	fmt.Print("\n===== User Report ===== (\"Ctrl+C\" to return to dashboard)\n")
 	fmt.Print("Search by ID: ")
 	var userID int
 	fmt.Scanln(&userID)
@@ -96,7 +96,7 @@ func (h *OrderHandler) ShowUserReport() {
 }
 
 func (h *OrderHandler) ShowStockReport() {
-	fmt.Println("\n===== Stock Report (Daily Summary) ===== (\"Ctrl+C\" to return to dashboard)\n")
+	fmt.Print("\n===== Stock Report (Daily Summary) ===== (\"Ctrl+C\" to return to dashboard)\n")
 	fmt.Print("Input Date: ")
 	var dateInput string
 	fmt.Scanln(&dateInput)
