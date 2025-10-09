@@ -156,11 +156,11 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		case "admin":
 			switch i {
 			case 0:
-				ManageProductsMenu(h.ProductHandler) 
+				SeeProductsMenu(h.ProductHandler) 
 			case 1:
-				fmt.Println("Admin: Manage Orders")
+				ManageOrdersMenu()
 			case 2:
-				fmt.Println("Admin: Report")
+				
 			case 3:
 				h.AddStaff()
 			case 4:
@@ -170,11 +170,11 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		case "staff":
 			switch i {
 			case 0:
-				ManageProductsMenu(h.ProductHandler)
+				SeeProductsMenu(h.ProductHandler)
 			case 1:
-				fmt.Println("Staff: Manage Orders")
+				ManageOrdersMenu()
 			case 2:
-				fmt.Println("Staff: Report")
+
 			case 3:
 				fmt.Println("Logging out...")
 				return
@@ -195,7 +195,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 	}
 }
 
-func ManageProductsMenu(ProductHandler *ProductHandler) {
+func SeeProductsMenu(ProductHandler *ProductHandler) {
 	for {
 		fmt.Println("\n====================================================")
 		ProductHandler.ShowAllProducts()
@@ -232,6 +232,47 @@ func ManageProductsMenu(ProductHandler *ProductHandler) {
 			// ProductHandler.UpdateProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 2:
 			// ProductHandler.DeleteProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 3:
+			return // kembali ke dashboard
+		}
+	}
+}
+
+func ManageOrdersMenu() {
+	for {
+		fmt.Println("\n=== Manage Orders ===")
+
+		menu := []string{
+			"View All Orders",
+			"View Order Details",
+			"Update Order Status",
+			"Back to Dashboard",
+		}
+
+		prompt := promptui.Select{
+			Label: "Select Action",
+			Items: menu,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . | cyan | bold }}",
+				Active:   "> {{ . | green | bold }}",
+				Inactive: "  {{ . | white }}",
+				Selected: "{{ . | bold }}",
+			},
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			fmt.Println("Prompt failed:", err)
+			return
+		}
+
+		switch i {
+		case 0:
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 1:
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 2:
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 3:
 			return // kembali ke dashboard
 		}
