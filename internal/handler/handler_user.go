@@ -16,14 +16,17 @@ import (
 type UserHandler struct {
 	UserRepo       *repository.UserRepository
 	ProductHandler *ProductHandler
+	OrderHandler   *OrderHandler
 	Reader         *bufio.Reader
 	DB             *sql.DB
 }
 
-func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler) *UserHandler {
+// Tambahkan orderHandler di constructor
+func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler, orderHandler *OrderHandler) *UserHandler {
 	return &UserHandler{
 		UserRepo:       userRepo,
 		ProductHandler: productHandler,
+		OrderHandler:   orderHandler,
 		Reader:         bufio.NewReader(os.Stdin),
 		DB:             db,
 	}
@@ -179,7 +182,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		case "user":
 			switch i {
 			case 0:
-				fmt.Println("User: Create Order")
+				// h.OrderHandler.CreateOrderCLI(user.ID)
 			case 1:
 				fmt.Println("User: My Orders")
 			case 2:
@@ -196,6 +199,12 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 }
 
 func (h *UserHandler) ReportMenu() {
+		}
+	}
+}
+
+// --- PRODUCT MENU ---
+func SeeProductsMenu(ProductHandler *ProductHandler) {
 	for {
 		fmt.Println("\n===== Report Menu =====")
 
@@ -227,6 +236,11 @@ func (h *UserHandler) ReportMenu() {
 		case 2:
 			reportHandler := NewReportHandler(h.DB)
 			reportHandler.ShowStockReport()
+			ProductHandler.AddProducts()
+		case 1:
+			ProductHandler.UpdateProducts()
+		case 2:
+			ProductHandler.DeleteProducts()
 		case 3:
 			return
 		}
@@ -234,6 +248,8 @@ func (h *UserHandler) ReportMenu() {
 }
 
 func SeeProductsMenu(ProductHandler *ProductHandler) {
+// --- MANAGE ORDERS MENU ---
+func ManageOrdersMenu() {
 	for {
 		fmt.Println("\n====================================================")
 		ProductHandler.ShowAllProducts()
@@ -270,6 +286,11 @@ func SeeProductsMenu(ProductHandler *ProductHandler) {
 			ProductHandler.UpdateProducts()
 		case 2:
 			ProductHandler.DeleteProducts()
+			fmt.Println("View All Orders - TBD")
+		case 1:
+			fmt.Println("View Order Details - TBD")
+		case 2:
+			fmt.Println("Update Order Status - TBD")
 		case 3:
 			return
 		}
@@ -277,6 +298,8 @@ func SeeProductsMenu(ProductHandler *ProductHandler) {
 }
 
 func ManageOrdersMenu() {
+// --- REPORT MENU ---
+func (h *UserHandler) ReportMenu() {
 	for {
 		fmt.Println("\n=== Manage Orders ===")
 
@@ -304,6 +327,7 @@ func ManageOrdersMenu() {
 			return
 		}
 
+		reportHandler := NewReportHandler(h.DB)
 		switch i {
 		case 0:
 			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
@@ -311,6 +335,11 @@ func ManageOrdersMenu() {
 			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 2:
 			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			reportHandler.ShowUserReport()
+		case 1:
+			reportHandler.ShowCompletedOrders()
+		case 2:
+			reportHandler.ShowStockReport()
 		case 3:
 			return // kembali ke dashboard
 		}
