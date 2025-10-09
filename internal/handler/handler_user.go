@@ -158,7 +158,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 0:
 				SeeProductsMenu(h.ProductHandler)
 			case 1:
-				ManageOrdersMenu()
+				ManageOrdersMenu(h.OrderHandler)
 			case 2:
 				h.ReportMenu()
 			case 3:
@@ -172,7 +172,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 0:
 				SeeProductsMenu(h.ProductHandler)
 			case 1:
-				ManageOrdersMenu()
+				ManageOrdersMenu(h.OrderHandler)
 			case 2:
 				h.ReportMenu()
 			case 3:
@@ -182,9 +182,9 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		case "user":
 			switch i {
 			case 0:
-				// h.OrderHandler.CreateOrderCLI(user.ID)
+				h.OrderHandler.CreateOrderCLI(user.ID)
 			case 1:
-				fmt.Println("User: My Orders")
+				h.OrderHandler.MyOrdersCLI(user.ID)
 			case 2:
 				fmt.Println("User: History")
 			case 3:
@@ -243,7 +243,7 @@ func SeeProductsMenu(ProductHandler *ProductHandler) {
 }
 
 // --- MANAGE ORDERS MENU ---
-func ManageOrdersMenu() {
+func ManageOrdersMenu(orderHandler *OrderHandler) {
 	for {
 		fmt.Println("\n=== Manage Orders ===")
 
@@ -277,7 +277,7 @@ func ManageOrdersMenu() {
 		case 1:
 			fmt.Println("View Order Details - TBD")
 		case 2:
-			fmt.Println("Update Order Status - TBD")
+			orderHandler.UpdateOrderStatusCLI()
 		case 3:
 			return
 		}
