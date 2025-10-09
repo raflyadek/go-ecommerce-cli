@@ -15,15 +15,17 @@ import (
 
 type UserHandler struct {
 	UserRepo *repository.UserRepository
+	ProductHandler *ProductHandler
 	Reader   *bufio.Reader
 	DB       *sql.DB
 }
 
-func NewUserHandler(repo *repository.UserRepository, db *sql.DB) *UserHandler {
+func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler) *UserHandler {
 	return &UserHandler{
-		UserRepo: repo,
-		Reader:   bufio.NewReader(os.Stdin),
-		DB:       db,
+		UserRepo:       userRepo,
+		ProductHandler: productHandler,
+		Reader:         bufio.NewReader(os.Stdin),
+		DB:             db,
 	}
 }
 
@@ -55,6 +57,7 @@ func (h *UserHandler) Login() bool {
 	}
 
 	fmt.Printf("Welcome, %s! Role: %s\n", user.Name, user.RoleName)
+	h.ProductHandler.ShowAllProducts()
 	h.ShowDashboard(&user)
 	return true
 }
@@ -153,11 +156,12 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		case "admin":
 			switch i {
 			case 0:
-				fmt.Println("Admin: See Products")
+				SeeProductsMenu(h.ProductHandler) 
 			case 1:
-				fmt.Println("Admin: Manage Orders")
+				ManageOrdersMenu()
 			case 2:
 				h.ReportMenu()
+				ReportMenu()
 			case 3:
 				h.AddStaff()
 			case 4:
@@ -167,11 +171,12 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		case "staff":
 			switch i {
 			case 0:
-				fmt.Println("Staff: See Products")
+				SeeProductsMenu(h.ProductHandler)
 			case 1:
-				fmt.Println("Staff: Manage Orders")
+				ManageOrdersMenu()
 			case 2:
 				h.ReportMenu()
+				ReportMenu()
 			case 3:
 				fmt.Println("Logging out...")
 				return
@@ -187,10 +192,55 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 3:
 				fmt.Println("Logging out...")
 				return
+			default:
+				fmt.Println("Invalid role.")
+				return
 			}
 		default:
 			fmt.Println("Invalid role.")
+		}
+	}
+}
+
+func SeeProductsMenu(ProductHandler *ProductHandler) {
+	for {
+		fmt.Println("\n====================================================")
+		ProductHandler.ShowAllProducts()
+		fmt.Println("====================================================")
+
+		menu := []string{
+			"Add Product",
+			"Update Product",
+			"Delete Product",
+			"Back to Dashboard",
+		}
+
+		prompt := promptui.Select{
+			Label: "Select Action",
+			Items: menu,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . | cyan | bold }}",
+				Active:   "> {{ . | green | bold }}",
+				Inactive: "  {{ . | white }}",
+				Selected: "{{ . | bold }}",
+			},
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			fmt.Println("Prompt failed:", err)
 			return
+		}
+
+		switch i {
+		case 0:
+			ProductHandler.AddProducts()// ProductHandler.AddProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 1:
+			ProductHandler.UpdateProducts()// ProductHandler.UpdateProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 2:
+			ProductHandler.DeleteProducts()// ProductHandler.DeleteProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 3:
+			return // kembali ke dashboard
 		}
 	}
 }
@@ -199,6 +249,52 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 func (h *UserHandler) ReportMenu() {
 	for {
 		fmt.Println("\n===== Report Menu =====")
+
+
+func ManageOrdersMenu() {
+	for {
+		fmt.Println("\n=== Manage Orders ===")
+
+		menu := []string{
+			"View All Orders",
+			"View Order Details",
+			"Update Order Status",
+			"Back to Dashboard",
+		}
+
+		prompt := promptui.Select{
+			Label: "Select Action",
+			Items: menu,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . | cyan | bold }}",
+				Active:   "> {{ . | green | bold }}",
+				Inactive: "  {{ . | white }}",
+				Selected: "{{ . | bold }}",
+			},
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			fmt.Println("Prompt failed:", err)
+			return
+		}
+
+		switch i {
+		case 0:
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 1:
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 2:
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 3:
+			return // kembali ke dashboard
+		}
+	}
+}
+
+func ReportMenu() {
+	for {
+		fmt.Println("\n=== Report Menu ===")
 
 		menu := []string{
 			"User Report",
@@ -210,6 +306,12 @@ func (h *UserHandler) ReportMenu() {
 		prompt := promptui.Select{
 			Label: "Select Report Type",
 			Items: menu,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . | cyan | bold }}",
+				Active:   "> {{ . | green | bold }}",
+				Inactive: "  {{ . | white }}",
+				Selected: "{{ . | bold }}",
+			},
 		}
 
 		i, _, err := prompt.Run()
@@ -228,8 +330,14 @@ func (h *UserHandler) ReportMenu() {
 		case 2:
 			reportHandler := NewReportHandler(h.DB)
 			reportHandler.ShowStockReport()
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+		case 1:
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING))
+		case 2:
+			// (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 3:
 			return
 		}
 	}
+}
 }

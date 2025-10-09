@@ -19,10 +19,11 @@ func waitEnter() {
 
 func LoginCLI(db *sql.DB) {
 	userRepo := repository.NewUserRepository(db)
-	userHandler := handler.NewUserHandler(userRepo, db)
 	productRepo := repository.NewProductRepository(db)
+
 	productHandler := handler.NewProductHandler(productRepo)
-	productHandler.ShowAllProducts()
+
+	userHandler := handler.NewUserHandler(userRepo, db, productHandler)
 
 	fmt.Println("========================================================================")
 	fmt.Println("                           WELCOME TO RYD STORE                                     ")
@@ -47,7 +48,7 @@ func LoginCLI(db *sql.DB) {
 
 		switch i {
 		case 0:
-			// waitEnter()
+			waitEnter()
 			if userHandler.Login() {
 				return
 			}
@@ -55,7 +56,7 @@ func LoginCLI(db *sql.DB) {
 			waitEnter() 
 			userHandler.RegisterUserCLI()
 			
-		case 2: // Exit
+		case 2:
 			fmt.Println("Goodbye!")
 			return
 		default:
@@ -65,13 +66,8 @@ func LoginCLI(db *sql.DB) {
 	}
 }
 
-func ShowProductCLI(db *sql.DB){
-
-}
-
 func main() {
 	db := config.ConnectDB()
 	defer db.Close()
 	LoginCLI(db)
-
 }
