@@ -20,14 +20,18 @@ func waitEnter() {
 func LoginCLI(db *sql.DB) {
 	userRepo := repository.NewUserRepository(db)
 	productRepo := repository.NewProductRepository(db)
+	orderRepo := repository.NewOrderRepo(db) // buat order repository
 
 	productHandler := handler.NewProductHandler(productRepo)
+	orderHandler := handler.NewOrderHandler(orderRepo) // buat order handler
 
-	userHandler := handler.NewUserHandler(userRepo, db, productHandler)
+	// Tambahkan orderHandler ke UserHandler
+	userHandler := handler.NewUserHandler(userRepo, db, productHandler, orderHandler)
 
 	fmt.Println("========================================================================")
 	fmt.Println("                           WELCOME TO RYD STORE                                     ")
 	fmt.Println("========================================================================")
+
 	for {
 		menu := []string{
 			"Already a member? Sign in!",
@@ -53,9 +57,8 @@ func LoginCLI(db *sql.DB) {
 				return
 			}
 		case 1:
-			waitEnter() 
+			waitEnter()
 			userHandler.RegisterUserCLI()
-			
 		case 2:
 			fmt.Println("Goodbye!")
 			return
@@ -69,5 +72,6 @@ func LoginCLI(db *sql.DB) {
 func main() {
 	db := config.ConnectDB()
 	defer db.Close()
+
 	LoginCLI(db)
 }
