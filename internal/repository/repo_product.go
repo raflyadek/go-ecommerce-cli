@@ -36,7 +36,7 @@ func (r *ProductRepository) GetAll() ([]entity.Product, error) {
 	return products, nil
 }
 
-func (r *ProductRepository) AddProduct(name, description string, price, stock int) error {
+func (r *ProductRepository) AddProduct(name, description string, price float64, stock int) error {
 	_, err := r.DB.Exec(`
 		INSERT INTO products (name, description, price, stock)
 		VALUES ($1, $2, $3, $4)
@@ -59,7 +59,7 @@ func (r *ProductRepository) DeleteProduct(id int) error {
 	return err
 }
 
-func (r *ProductRepository) UpdateProduct(name, description string, price, stock, id int) error {
+func (r *ProductRepository) UpdateProduct(name, description string, price float64, stock, id int) error {
 	_, err := r.DB.Exec(`
 		UPDATE products SET name = $1, description = $2, price = $3, stock = $4
 		WHERE id = $5
@@ -72,32 +72,31 @@ func (r *ProductRepository) UpdateProduct(name, description string, price, stock
 	return err
 }
 
-func (r *ProductRepository) ShowProductById(id int) error {
+func (r *ProductRepository) ShowProductById(id int) (entity.Product, error) {
+	var product entity.Product
 	rows, err := r.DB.Query(`
-		SELECT p.name, p.description, p.price, p.stock FROM products WHERE id = $1
+		SELECT p.id, p.name, p.description, p.price, p.stock FROM products WHERE id = $1
 	`, id)
 
 	if err != nil {
 		log.Println("Error fetching data from table products:", err)
-		return err
+		return product, err
 	}
 
 	// var products []entity.Product
 
 	for rows.Next() {
-		var order entity.Product
 
 		if err := rows.Scan(
-			&order.ID,
-			&order.Name, 
-			&order.Description, 
-			&order.Price, 
-			&order.Stock,
+			&product.ID,
+			&product.Name, 
+			&product.Description, 
+			&product.Price, 
+			&product.Stock,
 			); err != nil {
 				log.Println("error scanning product:", err)
 			}
-		fmt.Printf("name: %s \ndescription: %s \nprice: %d \np.stock %d\n", order.Name, order.Description, order.Price, order.Stock)
 	}
 
-	return err
+	return product, err
 }

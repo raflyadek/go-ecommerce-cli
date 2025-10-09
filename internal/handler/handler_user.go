@@ -230,7 +230,7 @@ func SeeProductsMenu(ProductHandler *ProductHandler) {
 
 		switch i {
 		case 0:
-			// ProductHandler.AddProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
+			ProductHandler.AddProducts()// ProductHandler.AddProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 1:
 			// ProductHandler.UpdateProductCLI() (SESUAIKAN NAMA FUNCTION/METHOD MASING MASING)
 		case 2:
