@@ -13,15 +13,18 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
+// ReportHandler menangani semua operasi laporan
 type ReportHandler struct {
 	ReportRepo repository.ReportRepository
 }
 
+// NewReportHandler membuat instance baru ReportHandler
 func NewReportHandler(db *sql.DB) *ReportHandler {
 	reportRepo := repository.NewReportRepo(db)
 	return &ReportHandler{ReportRepo: reportRepo}
 }
 
+// ShowUserReport menampilkan laporan user dengan pilihan search by ID atau Name
 func (h *ReportHandler) ShowUserReport() {
 	fmt.Printf("\n===== User Report ===== (\"Ctrl+C\" to return to dashboard)\n")
 
@@ -99,6 +102,7 @@ func (h *ReportHandler) ShowUserReport() {
 	fmt.Scanln()
 }
 
+// ShowCompletedOrders menampilkan laporan pesanan yang sudah selesai
 func (h *ReportHandler) ShowCompletedOrders() {
 	orders, err := h.ReportRepo.FindCompletedOrders()
 	if err != nil {
@@ -142,6 +146,7 @@ func (h *ReportHandler) ShowCompletedOrders() {
 	fmt.Scanln()
 }
 
+// ShowStockReport menampilkan laporan stok produk
 func (h *ReportHandler) ShowStockReport() {
 	fmt.Printf("\n===== Stock Report (Daily Summary) =====\n")
 	fmt.Print("Input Date: ")
@@ -172,6 +177,7 @@ func (h *ReportHandler) ShowStockReport() {
 	fmt.Print("\nPress ENTER to continue...")
 	fmt.Scanln()
 }
+// ShowBestSellingProducts menampilkan produk terlaris
 func (h *ReportHandler) ShowBestSellingProducts() {
 	products, err := h.ReportRepo.GetBestSellingProducts()
 	if err != nil {
@@ -200,6 +206,7 @@ func (h *ReportHandler) ShowBestSellingProducts() {
 	table.Render()
 }
 
+// ShowReportSummary menampilkan ringkasan laporan menggunakan goroutine untuk performa
 func (h *ReportHandler) ShowReportSummary() {
 	fmt.Println("\n===== Report Summary ===== (Loading...)")
 	start := time.Now()
