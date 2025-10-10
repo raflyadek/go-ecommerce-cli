@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"database/sql"
 	"fmt"
 	"go-ecommerce-cli/config"
@@ -12,10 +11,7 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-func waitEnter() {
-	fmt.Println("\nPress Enter to continue...")
-	bufio.NewReader(os.Stdin).ReadString('\n')
-}
+
 
 func LoginCLI(db *sql.DB, userHandler *handler.UserHandler) {
 	fmt.Println("========================================================================")
