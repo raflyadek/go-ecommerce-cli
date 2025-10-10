@@ -64,10 +64,7 @@ func LoginCLI(db *sql.DB, userHandler *handler.UserHandler) {
 			userHandler.RegisterUserCLI()
 		case 2:
 			fmt.Println("Goodbye!")
-			return
-		default:
-			fmt.Println("Invalid option")
-			waitEnter()
+			os.Exit(0)
 		}
 	}
 }

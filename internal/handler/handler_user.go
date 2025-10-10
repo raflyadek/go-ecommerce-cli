@@ -19,7 +19,7 @@ import (
 type UserHandler struct {
 	UserRepo       *repository.UserRepository
 	ProductHandler *ProductHandler
-	OrderHandler   *OrderHandler
+	OrderHandler *OrderHandler
 	Reader         *bufio.Reader
 	DB             *sql.DB
 }
@@ -29,7 +29,7 @@ func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHand
 	return &UserHandler{
 		UserRepo:       userRepo,
 		ProductHandler: productHandler,
-		OrderHandler:   orderHandler,
+		OrderHandler: orderHandler,
 		Reader:         bufio.NewReader(os.Stdin),
 		DB:             db,
 	}
@@ -183,6 +183,61 @@ func (h *UserHandler) ShowDashboard(user *entity.User) bool {
 				fmt.Println("Logging out...")
 				return true
 			}
+		default:
+			fmt.Println("Invalid role.")
+			return true
+		}
+	}
+}
+
+func (h *UserHandler) ReportMenu() {
+	// Tampilkan best selling products dulu
+	reportHandler := NewReportHandler(h.DB)
+	reportHandler.ShowBestSellingProducts()
+	
+	for {
+		fmt.Println("\n===== Report Menu =====")
+
+		menu := []string{
+			"User Report",
+			"Order Report",
+			"Stock Report",
+			"Report Summary",
+			"Back to Dashboard",
+		}
+
+		prompt := promptui.Select{
+			Label: "Select Report Type",
+			Items: menu,
+			Templates: &promptui.SelectTemplates{
+				Label:    "{{ . | cyan | bold }}",
+				Active:   "{{ . | green | bold }}",
+				Inactive: "  {{ . | white }}",
+				Selected: "{{ . | bold }}",
+			},
+		}
+
+		i, _, err := prompt.Run()
+		if err != nil {
+			fmt.Println("Prompt failed:", err)
+			return
+		}
+
+		switch i {
+		case 0:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowUserReport()
+		case 1:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowCompletedOrders()
+		case 2:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowStockReport()
+		case 3:
+			reportHandler := NewReportHandler(h.DB)
+			reportHandler.ShowReportSummary()
+		case 4:
+			return
 		}
 	}
 }
@@ -268,49 +323,6 @@ func ManageOrdersMenu(orderHandler *OrderHandler) {
 		case 2:
 			orderHandler.AllOrdersCLI()
 			orderHandler.UpdateOrderStatusCLI()
-		case 3:
-			return
-		}
-	}
-}
-
-// --- REPORT MENU ---
-func (h *UserHandler) ReportMenu() {
-	for {
-		fmt.Println("\n=== Report Menu ===")
-
-		menu := []string{
-			"User Report",
-			"Order Report",
-			"Stock Report",
-			"Back to Dashboard",
-		}
-
-		prompt := promptui.Select{
-			Label: "Select Report Type",
-			Items: menu,
-			Templates: &promptui.SelectTemplates{
-				Label:    "{{ . | cyan | bold }}",
-				Active:   "> {{ . | green | bold }}",
-				Inactive: "  {{ . | white }}",
-				Selected: "{{ . | bold }}",
-			},
-		}
-
-		i, _, err := prompt.Run()
-		if err != nil {
-			fmt.Println("Prompt failed:", err)
-			return
-		}
-
-		reportHandler := NewReportHandler(h.DB)
-		switch i {
-		case 0:
-			reportHandler.ShowUserReport()
-		case 1:
-			reportHandler.ShowCompletedOrders()
-		case 2:
-			reportHandler.ShowStockReport()
 		case 3:
 			return
 		}

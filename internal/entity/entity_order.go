@@ -13,6 +13,9 @@ type Order struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	Items       []OrderItem
+	CustomerName string
+	StatusName   string
+	CompletedDate time.Time
 }
 
 type OrderItem struct {
