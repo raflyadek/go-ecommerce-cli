@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// MockReportRepository adalah implementasi mock dari ReportRepository
+// MockReportRepository adalah implementasi mock dari ReportRepository untuk testing
 type MockReportRepository struct {
 	mock.Mock
 }
@@ -69,6 +69,7 @@ func (m *MockReportRepository) GetAvgOrderValue() (float64, error) {
 	return args.Get(0).(float64), args.Error(1)
 }
 
+// TestReportHandler_ShowBestSellingProducts_Success test skenario sukses produk terlaris
 func TestReportHandler_ShowBestSellingProducts_Success(t *testing.T) {
 	mockRepo := new(MockReportRepository)
 	handler := &ReportHandler{ReportRepo: mockRepo}
@@ -87,6 +88,7 @@ func TestReportHandler_ShowBestSellingProducts_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+// TestReportHandler_ShowBestSellingProducts_Error test skenario error database
 func TestReportHandler_ShowBestSellingProducts_Error(t *testing.T) {
 	mockRepo := new(MockReportRepository)
 	handler := &ReportHandler{ReportRepo: mockRepo}
@@ -101,6 +103,7 @@ func TestReportHandler_ShowBestSellingProducts_Error(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+// TestReportHandler_ShowBestSellingProducts_NoData test skenario tidak ada data
 func TestReportHandler_ShowBestSellingProducts_NoData(t *testing.T) {
 	mockRepo := new(MockReportRepository)
 	handler := &ReportHandler{ReportRepo: mockRepo}
@@ -115,6 +118,7 @@ func TestReportHandler_ShowBestSellingProducts_NoData(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+// TestReportHandler_Repository_Methods test semua method repository
 func TestReportHandler_Repository_Methods(t *testing.T) {
 	mockRepo := new(MockReportRepository)
 	handler := &ReportHandler{ReportRepo: mockRepo}
@@ -181,6 +185,7 @@ func TestReportHandler_Repository_Methods(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+// TestReportHandler_Error_Handling test penanganan error untuk semua method
 func TestReportHandler_Error_Handling(t *testing.T) {
 	mockRepo := new(MockReportRepository)
 	handler := &ReportHandler{ReportRepo: mockRepo}

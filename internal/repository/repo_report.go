@@ -6,6 +6,7 @@ import (
 	"go-ecommerce-cli/internal/entity"
 )
 
+// ReportRepository interface untuk operasi database laporan
 type ReportRepository interface {
 	FindCompletedOrders() ([]entity.Order, error)
 	FindUserOrders(userID int) ([]entity.Order, error)
@@ -20,14 +21,17 @@ type ReportRepository interface {
 	GetAvgOrderValue() (float64, error)
 }
 
+// ReportRepo implementasi dari ReportRepository
 type ReportRepo struct {
 	DB *sql.DB
 }
 
+// NewReportRepo membuat instance baru ReportRepo
 func NewReportRepo(db *sql.DB) *ReportRepo {
 	return &ReportRepo{DB: db}
 }
 
+// FindCompletedOrders mencari semua pesanan dengan status completed
 func (r *ReportRepo) FindCompletedOrders() ([]entity.Order, error) {
 	query := `
 		SELECT 
@@ -81,6 +85,7 @@ func (r *ReportRepo) FindCompletedOrders() ([]entity.Order, error) {
 	return orders, nil
 }
 
+// FindUserOrders mencari pesanan berdasarkan user ID
 func (r *ReportRepo) FindUserOrders(userID int) ([]entity.Order, error) {
 	query := `
 		SELECT 
@@ -130,6 +135,7 @@ func (r *ReportRepo) FindUserOrders(userID int) ([]entity.Order, error) {
 	return orders, nil
 }
 
+// FindAllUsersWithOrders mencari semua user yang memiliki pesanan
 func (r *ReportRepo) FindAllUsersWithOrders() ([]entity.UserReport, error) {
 	query := `
 		SELECT 
@@ -169,6 +175,7 @@ func (r *ReportRepo) FindAllUsersWithOrders() ([]entity.UserReport, error) {
 	return reports, nil
 }
 
+// GetStockReport mendapatkan laporan stok semua produk
 func (r *ReportRepo) GetStockReport() ([]entity.StockReport, error) {
 	query := `
 		SELECT 
@@ -213,6 +220,7 @@ func (r *ReportRepo) GetStockReport() ([]entity.StockReport, error) {
 
 	return reports, nil
 }
+// GetBestSellingProducts mendapatkan produk terlaris dari view database
 func (r *ReportRepo) GetBestSellingProducts() ([]entity.BestSellingProduct, error) {
 	query := `SELECT * FROM view_best_selling_products`
 
@@ -240,6 +248,7 @@ func (r *ReportRepo) GetBestSellingProducts() ([]entity.BestSellingProduct, erro
 	return products, nil
 }
 
+// FindUserOrdersByName mencari pesanan berdasarkan nama user (case insensitive)
 func (r *ReportRepo) FindUserOrdersByName(userName string) ([]entity.Order, error) {
 	query := `
 		SELECT 
@@ -289,6 +298,7 @@ func (r *ReportRepo) FindUserOrdersByName(userName string) ([]entity.Order, erro
 	return orders, nil
 }
 
+// GetReportSummary mendapatkan ringkasan laporan dalam 1 query (backup method)
 func (r *ReportRepo) GetReportSummary() (entity.ReportSummary, error) {
 	query := `
 		SELECT 
@@ -312,24 +322,28 @@ func (r *ReportRepo) GetReportSummary() (entity.ReportSummary, error) {
 	return summary, nil
 }
 
+// GetTotalUsers menghitung total user untuk goroutine
 func (r *ReportRepo) GetTotalUsers() (int, error) {
 	var count int
 	err := r.DB.QueryRow("SELECT COUNT(*) FROM users WHERE role_id = 3").Scan(&count)
 	return count, err
 }
 
+// GetTotalOrders menghitung total pesanan untuk goroutine
 func (r *ReportRepo) GetTotalOrders() (int, error) {
 	var count int
 	err := r.DB.QueryRow("SELECT COUNT(*) FROM orders").Scan(&count)
 	return count, err
 }
 
+// GetTotalRevenue menghitung total pendapatan untuk goroutine
 func (r *ReportRepo) GetTotalRevenue() (float64, error) {
 	var revenue float64
 	err := r.DB.QueryRow("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE status_id IN (2,3,4)").Scan(&revenue)
 	return revenue, err
 }
 
+// GetAvgOrderValue menghitung rata-rata nilai pesanan untuk goroutine
 func (r *ReportRepo) GetAvgOrderValue() (float64, error) {
 	var avg float64
 	err := r.DB.QueryRow("SELECT COALESCE(AVG(total_amount), 0) FROM orders WHERE status_id IN (2,3,4)").Scan(&avg)
