@@ -34,10 +34,16 @@ func TestRepoProduct_AddProduct(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 
+	repo := NewProductRepository(db)
+
 	//Mock add product
-	mock.ExpectExec("INSERT INTO products (name, description, price, stock").
+	mock.ExpectExec("INSERT INTO products").
 		WithArgs("Baju", "Baju panjang", float64(10000), 10).
 		WillReturnResult(sqlmock.NewResult(1, 1))
+	
+	err = repo.AddProduct("Baju", "Baju panjang", 10000, 10)
+	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestRepoProduct_DeleteProduct(t *testing.T) {
@@ -45,11 +51,50 @@ func TestRepoProduct_DeleteProduct(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 
-	mock.ExpectQuery("")
+	repo := NewProductRepository(db)
+	mock.ExpectExec("DELETE FROM products WHERE id =").
+		WithArgs(1).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	
+	err = repo.DeleteProduct(1)
+	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 func TestRepoProduct_UpdateProduct(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	assert.NoError(t, err)
+	defer db.Close()
 
+	repo := NewProductRepository(db)
+
+	mock.ExpectExec("UPDATE products SET name =").
+		WithArgs("Baju", "Baju panjang", float64(12000), 15, 1).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+
+	err = repo.UpdateProduct("Baju", "Baju panjang", 12000, 15, 1)
+	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 func TestRepoProduct_ShowProductById(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	repo := NewProductRepository(db)
+
+	rows := sqlmock.NewRows([]string{"id", "name", "description", "price", "stock"}).
+		AddRow(1, "Baju", "Baju panjang", float64(10000), 10)
+
+	mock.ExpectQuery("SELECT id, name, description, price, stock FROM products WHERE id =").
+		WithArgs(1).
+		WillReturnRows(rows)
+
+	product, err := repo.ShowProductById(1)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, product.ID)
+	assert.Equal(t, "Baju", product.Name)
+	assert.Equal(t, "Baju panjang", product.Description)
+	assert.Equal(t, float64(10000), product.Price)
+	assert.Equal(t, 10, product.Stock)
 
 }

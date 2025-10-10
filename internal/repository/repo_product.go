@@ -7,6 +7,14 @@ import (
 	"log"
 )
 
+// type ProductRepositoryInterface interface {
+// 	GetAll() ([]entity.Product, error)
+// 	ShowProductById(id int) (entity.Product, error)
+// 	AddProduct(name, description string, price float64, stock int) error
+// 	DeleteProduct(id int) error
+// 	UpdateProduct(name, description string, price float64, stock, id int) error
+// }
+
 type ProductRepository struct {
 	DB *sql.DB
 }
