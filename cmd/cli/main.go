@@ -54,7 +54,7 @@ func LoginCLI(db *sql.DB, userHandler *handler.UserHandler) {
 
 		switch i {
 		case 0:
-			waitEnter()
+			// waitEnter()
 			user := userHandler.Login()
 			if user != nil {
 				userHandler.ShowDashboard(user)
