@@ -18,6 +18,24 @@ import (
 )
 
 type UserHandler struct {
+<<<<<<< HEAD
+	UserRepo       *repository.UserRepository
+	ProductHandler *ProductHandler
+	OrderHandler   *OrderHandler
+	Reader         *bufio.Reader
+	DB             *sql.DB
+}
+
+// Tambahkan orderHandler di constructor
+func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler, orderHandler *OrderHandler) *UserHandler {
+	return &UserHandler{
+		UserRepo:       userRepo,
+		ProductHandler: productHandler,
+		OrderHandler:   orderHandler,
+		Reader:         bufio.NewReader(os.Stdin),
+		DB:             db,
+	}
+=======
     UserRepo repository.IUserRepository
     ProductHandler *ProductHandler
     OrderHandler *OrderHandler
@@ -35,25 +53,42 @@ func NewUserHandler(userRepo repository.IUserRepository, db *sql.DB, productHand
         Reader:         bufio.NewReader(os.Stdin),
         DB:             db,
     }
+>>>>>>> c91ce96df1c338b3706cfe2ce353beb172f4e100
 }
 
 // --- LOGIN ---
 func (h *UserHandler) Login() *entity.User {
-    fmt.Println("\n=== LOGIN ===")
+	fmt.Println("\n=== LOGIN ===")
 
-    fmt.Print("Enter email: ")
-    email, _ := h.Reader.ReadString('\n')
-    email = strings.TrimSpace(email)
+	fmt.Print("Enter email: ")
+	email, _ := h.Reader.ReadString('\n')
+	email = strings.TrimSpace(email)
 
-    fmt.Print("Enter password: ")
-    bytePassword, err := term.ReadPassword(int(syscall.Stdin))
-    fmt.Println()
-    if err != nil {
-        fmt.Println("Error reading password:", err)
-        return nil
-    }
-    password := strings.TrimSpace(string(bytePassword))
+	fmt.Print("Enter password: ")
+	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	fmt.Println()
+	if err != nil {
+		fmt.Println("Error reading password:", err)
+		return nil
+	}
+	password := strings.TrimSpace(string(bytePassword))
 
+<<<<<<< HEAD
+	user, err := h.UserRepo.GetByEmail(email)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil
+	}
+
+	if !utils.CheckPassword(password, user.Password) {
+		fmt.Println("Password incorrect")
+		return nil
+	}
+
+	fmt.Printf("Welcome, %s! Role: %s\n", user.Name, user.RoleName)
+	h.ProductHandler.ShowAllProducts()
+	return &user
+=======
     user, err := h.LoginLogic(email, password)
     if err != nil {
         fmt.Println("Error:", err)
@@ -77,10 +112,60 @@ func (h *UserHandler) LoginLogic(email, password string) (*entity.User, error) {
     }
 
     return &user, nil
+>>>>>>> c91ce96df1c338b3706cfe2ce353beb172f4e100
 }
 
 // --- REGISTER USER ---
 func (h *UserHandler) RegisterUserCLI() {
+<<<<<<< HEAD
+	fmt.Println("\n=== REGISTER USER ===")
+	fmt.Print("Enter name: ")
+	name, _ := h.Reader.ReadString('\n')
+	name = strings.TrimSpace(name)
+
+	fmt.Print("Enter email: ")
+	email, _ := h.Reader.ReadString('\n')
+	email = strings.TrimSpace(email)
+
+	fmt.Print("Enter password: ")
+	password, _ := h.Reader.ReadString('\n')
+	password = strings.TrimSpace(password)
+	if name == "" || email == "" || password == "" {
+		fmt.Println("All fields are required.")
+		return
+	}
+	hashed := utils.HashPassword(password)
+	err := h.UserRepo.RegisterUser(name, email, hashed)
+	if err != nil {
+		fmt.Println("Failed to register user:", err)
+		return
+	}
+	fmt.Println("User registered successfully!")
+}
+
+// --- ADD STAFF (Admin Only) ---
+func (h *UserHandler) AddStaff() {
+	fmt.Println("\n=== ADD STAFF ===")
+	fmt.Print("Enter staff name: ")
+	name, _ := h.Reader.ReadString('\n')
+	name = strings.TrimSpace(name)
+
+	fmt.Print("Enter staff email: ")
+	email, _ := h.Reader.ReadString('\n')
+	email = strings.TrimSpace(email)
+	fmt.Print("Enter password: ")
+
+	password, _ := h.Reader.ReadString('\n')
+	password = strings.TrimSpace(password)
+	hashed := utils.HashPassword(password)
+	err := h.UserRepo.CreateStaff(name, email, hashed)
+
+	if err != nil {
+		fmt.Println("Error creating staff:", err)
+		return
+	}
+	fmt.Printf("Staff '%s' (%s) added successfully!\n", name, email)
+=======
 	fmt.Fprintln(h.Writer, "\n=== REGISTER USER ===")
 
 	fmt.Fprint(h.Writer, "Enter name: ")
@@ -130,6 +215,7 @@ func (h *UserHandler) AddStaff() { fmt.Println("\n=== ADD STAFF ===")
         return 
     } 
     fmt.Printf("Staff '%s' (%s) added successfully!\n", name, email) 
+>>>>>>> c91ce96df1c338b3706cfe2ce353beb172f4e100
 }
 
 // --- DASHBOARD MENU ---
@@ -208,12 +294,21 @@ func (h *UserHandler) ShowDashboard(user *entity.User) bool {
 }
 
 func (h *UserHandler) ReportMenu() {
+<<<<<<< HEAD
+	// Tampilkan best selling products dulu
+	reportHandler := NewReportHandler(h.DB)
+	reportHandler.ShowBestSellingProducts()
+
+	for {
+		fmt.Println("\n===== Report Menu =====")
+=======
     // Tampilkan best selling products dulu
     reportHandler := NewReportHandler(h.DB)
     reportHandler.ShowBestSellingProducts()
     
     for {
         fmt.Println("\n===== Report Menu =====")
+>>>>>>> c91ce96df1c338b3706cfe2ce353beb172f4e100
 
         menu := []string{
             "User Report",
