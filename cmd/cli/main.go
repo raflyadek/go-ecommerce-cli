@@ -17,12 +17,7 @@ func waitEnter() {
 	bufio.NewReader(os.Stdin).ReadString('\n')
 }
 
-func LoginCLI(db *sql.DB) {
-	userRepo := repository.NewUserRepository(db)
-	productRepo := repository.NewProductRepository(db)
-	productHandler := handler.NewProductHandler(productRepo)
-	userHandler := handler.NewUserHandler(userRepo, db, productHandler)
-
+func LoginCLI(db *sql.DB, userHandler *handler.UserHandler) {
 	fmt.Println("========================================================================")
 	fmt.Println(`     
  \o       o/      o           o__ __o        o__ __o__/_   o__ __o               o__ __o    ____o__ __o____     o__ __o        o__ __o         o__ __o__/_ 
@@ -60,18 +55,16 @@ func LoginCLI(db *sql.DB) {
 		switch i {
 		case 0:
 			waitEnter()
-			if userHandler.Login() {
-				return
+			user := userHandler.Login()
+			if user != nil {
+				userHandler.ShowDashboard(user)
 			}
 		case 1:
 			waitEnter()
 			userHandler.RegisterUserCLI()
 		case 2:
 			fmt.Println("Goodbye!")
-			return
-		default:
-			fmt.Println("Invalid option")
-			waitEnter()
+			os.Exit(0)
 		}
 	}
 }
@@ -80,5 +73,20 @@ func main() {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	LoginCLI(db)
+	// Repos
+	userRepo := repository.NewUserRepository(db)
+	productRepo := repository.NewProductRepository(db)
+	orderRepo := repository.NewOrderRepo(db)
+
+	// Handlers
+	productHandler := handler.NewProductHandler(productRepo)
+	orderHandler := handler.NewOrderHandler(orderRepo, productRepo, productHandler, db)
+	userHandler := handler.NewUserHandler(userRepo, db, productHandler, orderHandler)
+
+	for {
+		LoginCLI(db, userHandler)
+		// ketika user logout, loop akan kembali ke sini
+		fmt.Println("\n=== Returning to Login Menu ===")
+	}
 }
+

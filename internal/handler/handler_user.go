@@ -9,6 +9,9 @@ import (
 	"go-ecommerce-cli/pkg/utils"
 	"os"
 	"strings"
+	"syscall"
+
+	"golang.org/x/term"
 
 	"github.com/manifoldco/promptui"
 )
@@ -16,113 +19,104 @@ import (
 type UserHandler struct {
 	UserRepo       *repository.UserRepository
 	ProductHandler *ProductHandler
-
+	OrderHandler *OrderHandler
 	Reader         *bufio.Reader
 	DB             *sql.DB
 }
 
 // Tambahkan orderHandler di constructor
-func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler) *UserHandler {
+func NewUserHandler(userRepo *repository.UserRepository, db *sql.DB, productHandler *ProductHandler, orderHandler *OrderHandler) *UserHandler {
 	return &UserHandler{
 		UserRepo:       userRepo,
 		ProductHandler: productHandler,
+		OrderHandler: orderHandler,
 		Reader:         bufio.NewReader(os.Stdin),
 		DB:             db,
 	}
 }
 
 // --- LOGIN ---
-func (h *UserHandler) Login() bool {
-	fmt.Println("\n=== LOGIN ===")
+func (h *UserHandler) Login() *entity.User {
+    fmt.Println("\n=== LOGIN ===")
 
-	fmt.Print("Enter email: ")
-	email, _ := h.Reader.ReadString('\n')
-	email = strings.TrimSpace(email)
+    fmt.Print("Enter email: ")
+    email, _ := h.Reader.ReadString('\n')
+    email = strings.TrimSpace(email)
 
-	fmt.Print("Enter password: ")
-	password, _ := h.Reader.ReadString('\n')
-	password = strings.TrimSpace(password)
+    fmt.Print("Enter password: ")
+    bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+    fmt.Println()
+    if err != nil {
+        fmt.Println("Error reading password:", err)
+        return nil
+    }
+    password := strings.TrimSpace(string(bytePassword))
 
-	user, err := h.UserRepo.GetByEmail(email)
-	if err != nil {
-		if email == "" {
-			fmt.Println("Email cannot be empty.")
-		} else {
-			fmt.Println("Error:", err)
-		}
-		return false
-	}
+    user, err := h.UserRepo.GetByEmail(email)
+    if err != nil {
+        fmt.Println("Error:", err)
+        return nil
+    }
 
-	if !utils.CheckPassword(password, user.Password) {
-		fmt.Println("Password incorrect")
-		return false
-	}
+    if !utils.CheckPassword(password, user.Password) {
+        fmt.Println("Password incorrect")
+        return nil
+    }
 
-	fmt.Printf("Welcome, %s! Role: %s\n", user.Name, user.RoleName)
-	h.ProductHandler.ShowAllProducts()
-	h.ShowDashboard(&user)
-	return true
+    fmt.Printf("Welcome, %s! Role: %s\n", user.Name, user.RoleName)
+    h.ProductHandler.ShowAllProducts()
+    return &user
 }
 
 // --- REGISTER USER ---
-func (h *UserHandler) RegisterUserCLI() {
-	fmt.Println("\n=== REGISTER USER ===")
+func (h *UserHandler) RegisterUserCLI() { 
+	fmt.Println("\n=== REGISTER USER ===") 
+	fmt.Print("Enter name: ") 
+	name, _ := h.Reader.ReadString('\n') 
+	name = strings.TrimSpace(name) 
+	
+	fmt.Print("Enter email: ") 
+	email, _ := h.Reader.ReadString('\n') 
+	email = strings.TrimSpace(email) 
 
-	fmt.Print("Enter name: ")
-	name, _ := h.Reader.ReadString('\n')
-	name = strings.TrimSpace(name)
-
-	fmt.Print("Enter email: ")
-	email, _ := h.Reader.ReadString('\n')
-	email = strings.TrimSpace(email)
-
-	fmt.Print("Enter password: ")
-	password, _ := h.Reader.ReadString('\n')
-	password = strings.TrimSpace(password)
-
-	if name == "" || email == "" || password == "" {
-		fmt.Println("All fields are required.")
-		return
-	}
-
-	hashed := utils.HashPassword(password)
-	err := h.UserRepo.RegisterUser(name, email, hashed)
-	if err != nil {
-		fmt.Println("Failed to register user:", err)
-		return
-	}
-
-	fmt.Println("User registered successfully!")
-}
+	fmt.Print("Enter password: ") 
+	password, _ := h.Reader.ReadString('\n') 
+	password = strings.TrimSpace(password) 
+	if name == "" || email == "" || password == "" 	{ 
+		fmt.Println("All fields are required.") 
+		return 
+	} 
+	hashed := utils.HashPassword(password) 
+	err := h.UserRepo.RegisterUser(name, email, hashed) 
+	if err != nil { fmt.Println("Failed to register user:", err) 
+		return 
+	} 
+	fmt.Println("User registered successfully!") }
 
 // --- ADD STAFF (Admin Only) ---
-func (h *UserHandler) AddStaff() {
-	fmt.Println("\n=== ADD STAFF ===")
+func (h *UserHandler) AddStaff() { fmt.Println("\n=== ADD STAFF ===") 
+	fmt.Print("Enter staff name: ") 
+	name, _ := h.Reader.ReadString('\n') 
+	name = strings.TrimSpace(name) 
 
-	fmt.Print("Enter staff name: ")
-	name, _ := h.Reader.ReadString('\n')
-	name = strings.TrimSpace(name)
+	fmt.Print("Enter staff email: ") 
+	email, _ := h.Reader.ReadString('\n') 
+	email = strings.TrimSpace(email) 
+	fmt.Print("Enter password: ") 
 
-	fmt.Print("Enter staff email: ")
-	email, _ := h.Reader.ReadString('\n')
-	email = strings.TrimSpace(email)
+	password, _ := h.Reader.ReadString('\n') 
+	password = strings.TrimSpace(password) 
+	hashed := utils.HashPassword(password) 
+	err := h.UserRepo.CreateStaff(name, email, hashed) 
 
-	fmt.Print("Enter password: ")
-	password, _ := h.Reader.ReadString('\n')
-	password = strings.TrimSpace(password)
-
-	hashed := utils.HashPassword(password)
-	err := h.UserRepo.CreateStaff(name, email, hashed)
-	if err != nil {
-		fmt.Println("Error creating staff:", err)
-		return
-	}
-
-	fmt.Printf("Staff '%s' (%s) added successfully!\n", name, email)
+	if err != nil { fmt.Println("Error creating staff:", err) 
+		return 
+	} 
+	fmt.Printf("Staff '%s' (%s) added successfully!\n", name, email) 
 }
 
 // --- DASHBOARD MENU ---
-func (h *UserHandler) ShowDashboard(user *entity.User) {
+func (h *UserHandler) ShowDashboard(user *entity.User) bool {
 	for {
 		var menu []string
 		switch user.RoleName {
@@ -148,7 +142,7 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 		i, _, err := prompt.Run()
 		if err != nil {
 			fmt.Println("Prompt failed:", err)
-			return
+			return true
 		}
 
 		switch strings.ToLower(user.RoleName) {
@@ -157,42 +151,41 @@ func (h *UserHandler) ShowDashboard(user *entity.User) {
 			case 0:
 				SeeProductsMenu(h.ProductHandler)
 			case 1:
-				ManageOrdersMenu()
+				ManageOrdersMenu(h.OrderHandler)
 			case 2:
 				h.ReportMenu()
 			case 3:
 				h.AddStaff()
 			case 4:
-				fmt.Println("Logging out...")
-				return
+				return true
 			}
 		case "staff":
 			switch i {
 			case 0:
 				SeeProductsMenu(h.ProductHandler)
 			case 1:
-				ManageOrdersMenu()
+				ManageOrdersMenu(h.OrderHandler)
 			case 2:
 				h.ReportMenu()
 			case 3:
 				fmt.Println("Logging out...")
-				return
+				return true
 			}
 		case "user":
 			switch i {
 			case 0:
-				// h.OrderHandler.CreateOrderCLI(user.ID)
+				h.OrderHandler.CreateOrderCLI(user.ID)
 			case 1:
-				fmt.Println("User: My Orders")
+				h.OrderHandler.MyOrdersCLI(user.ID)
 			case 2:
-				fmt.Println("User: History")
+				h.OrderHandler.HistoryOrdersCLI(user.ID)
 			case 3:
 				fmt.Println("Logging out...")
-				return
+				return true
 			}
 		default:
 			fmt.Println("Invalid role.")
-			return
+			return true
 		}
 	}
 }
@@ -294,7 +287,7 @@ func SeeProductsMenu(ProductHandler *ProductHandler) {
 }
 
 // --- MANAGE ORDERS MENU ---
-func ManageOrdersMenu() {
+func ManageOrdersMenu(orderHandler *OrderHandler) {
 	for {
 		fmt.Println("\n=== Manage Orders ===")
 
@@ -324,11 +317,12 @@ func ManageOrdersMenu() {
 
 		switch i {
 		case 0:
-			fmt.Println("View All Orders - TBD")
+			orderHandler.AllOrdersCLI()
 		case 1:
-			fmt.Println("View Order Details - TBD")
+			orderHandler.ViewOrderDetailsCLI()
 		case 2:
-			fmt.Println("Update Order Status - TBD")
+			orderHandler.AllOrdersCLI()
+			orderHandler.UpdateOrderStatusCLI()
 		case 3:
 			return
 		}
