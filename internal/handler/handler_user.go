@@ -34,6 +34,7 @@ func NewUserHandler(userRepo repository.IUserRepository, db *sql.DB, productHand
         OrderHandler: orderHandler,
         Reader:         bufio.NewReader(os.Stdin),
         DB:             db,
+        Writer: os.Stdout,
     }
 }
 
