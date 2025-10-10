@@ -18,43 +18,24 @@ import (
 )
 
 type UserHandler struct {
-<<<<<<< HEAD
 	UserRepo       repository.IUserRepository
 	ProductHandler *ProductHandler
 	OrderHandler   *OrderHandler
 	Reader         *bufio.Reader
 	DB             *sql.DB
 	Writer         io.Writer
-=======
-    UserRepo repository.IUserRepository
-    ProductHandler *ProductHandler
-    OrderHandler *OrderHandler
-    Reader         *bufio.Reader
-    DB             *sql.DB
-    Writer io.Writer
->>>>>>> feea375969fca4ba9e4db3ad21f72ca74214013c
 }
 
 // Tambahkan orderHandler di constructor
 func NewUserHandler(userRepo repository.IUserRepository, db *sql.DB, productHandler *ProductHandler, orderHandler *OrderHandler) *UserHandler {
-<<<<<<< HEAD
 	return &UserHandler{
 		UserRepo:       userRepo,
 		ProductHandler: productHandler,
 		OrderHandler:   orderHandler,
 		Reader:         bufio.NewReader(os.Stdin),
 		DB:             db,
+		Writer:         os.Stdout,
 	}
-=======
-    return &UserHandler{
-        UserRepo:       userRepo,
-        ProductHandler: productHandler,
-        OrderHandler: orderHandler,
-        Reader:         bufio.NewReader(os.Stdin),
-        DB:             db,
-        Writer: os.Stdout,
-    }
->>>>>>> feea375969fca4ba9e4db3ad21f72ca74214013c
 }
 
 // --- LOGIN ---
@@ -74,7 +55,6 @@ func (h *UserHandler) Login() *entity.User {
 	}
 	password := strings.TrimSpace(string(bytePassword))
 
-<<<<<<< HEAD
 	user, err := h.LoginLogic(email, password)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -84,17 +64,6 @@ func (h *UserHandler) Login() *entity.User {
 	fmt.Printf("Welcome, %s! Role: %s\n", user.Name, user.RoleName)
 	h.ProductHandler.ShowAllProducts()
 	return user
-=======
-    user, err := h.LoginLogic(email, password)
-    if err != nil {
-        fmt.Println("Error:", err)
-        return nil
-    }
-
-    fmt.Printf("Welcome, %s! Role: %s\n", user.Name, user.RoleName)
-    h.ProductHandler.ShowAllProducts()
-    return user
->>>>>>> feea375969fca4ba9e4db3ad21f72ca74214013c
 }
 
 // LoginLogic handles the core authentication logic without CLI interaction.
@@ -108,11 +77,7 @@ func (h *UserHandler) LoginLogic(email, password string) (*entity.User, error) {
 		return nil, fmt.Errorf("password incorrect")
 	}
 
-<<<<<<< HEAD
 	return &user, nil
-=======
-    return &user, nil
->>>>>>> feea375969fca4ba9e4db3ad21f72ca74214013c
 }
 
 // --- REGISTER USER ---
@@ -163,18 +128,11 @@ func (h *UserHandler) AddStaff() {
 	hashed := utils.HashPassword(password)
 	err := h.UserRepo.CreateStaff(name, email, hashed)
 
-<<<<<<< HEAD
 	if err != nil {
 		fmt.Println("Error creating staff:", err)
 		return
 	}
 	fmt.Printf("Staff '%s' (%s) added successfully!\n", name, email)
-=======
-    if err != nil { fmt.Println("Error creating staff:", err) 
-        return 
-    } 
-    fmt.Printf("Staff '%s' (%s) added successfully!\n", name, email) 
->>>>>>> feea375969fca4ba9e4db3ad21f72ca74214013c
 }
 
 // --- DASHBOARD MENU ---
@@ -253,21 +211,12 @@ func (h *UserHandler) ShowDashboard(user *entity.User) bool {
 }
 
 func (h *UserHandler) ReportMenu() {
-<<<<<<< HEAD
 	// Tampilkan best selling products dulu
 	reportHandler := NewReportHandler(h.DB)
 	reportHandler.ShowBestSellingProducts()
 
 	for {
 		fmt.Println("\n===== Report Menu =====")
-=======
-    // Tampilkan best selling products dulu
-    reportHandler := NewReportHandler(h.DB)
-    reportHandler.ShowBestSellingProducts()
-    
-    for {
-        fmt.Println("\n===== Report Menu =====")
->>>>>>> feea375969fca4ba9e4db3ad21f72ca74214013c
 
 		menu := []string{
 			"User Report",
