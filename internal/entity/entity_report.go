@@ -7,6 +7,18 @@ type UserReport struct {
 	TotalSpent float64
 }
 
+type UserOrderSummary struct {
+	UserName        string
+	TotalOrders     int
+	PendingOrders   int
+	CompletedOrders int
+	CancelledOrders int
+	TotalAmount     float64
+	CompletedAmount float64
+	PendingAmount   float64
+	CancelledAmount float64
+}
+
 type StockReport struct {
 	ProductID    int
 	ProductName  string

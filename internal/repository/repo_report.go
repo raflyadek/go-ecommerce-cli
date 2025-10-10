@@ -19,6 +19,8 @@ type ReportRepository interface {
 	GetTotalOrders() (int, error)
 	GetTotalRevenue() (float64, error)
 	GetAvgOrderValue() (float64, error)
+	GetUserOrderSummary(userID int) (entity.UserOrderSummary, error)
+	GetUserOrderSummaryByName(userName string) (entity.UserOrderSummary, error)
 }
 
 // ReportRepo implementasi dari ReportRepository
@@ -348,4 +350,83 @@ func (r *ReportRepo) GetAvgOrderValue() (float64, error) {
 	var avg float64
 	err := r.DB.QueryRow("SELECT COALESCE(AVG(total_amount), 0) FROM orders WHERE status_id IN (2,3,4)").Scan(&avg)
 	return avg, err
+}
+
+// GetUserOrderSummary mendapatkan ringkasan pesanan user berdasarkan ID dengan breakdown status
+func (r *ReportRepo) GetUserOrderSummary(userID int) (entity.UserOrderSummary, error) {
+	query := `
+		SELECT 
+			u.name,
+			COUNT(o.id) as total_orders,
+			COUNT(CASE WHEN s.status_name = 'pending' THEN 1 END) as pending_orders,
+			COUNT(CASE WHEN s.status_name = 'completed' THEN 1 END) as completed_orders,
+			COUNT(CASE WHEN s.status_name = 'cancelled' THEN 1 END) as cancelled_orders,
+			COALESCE(SUM(o.total_amount), 0) as total_amount,
+			COALESCE(SUM(CASE WHEN s.status_name = 'completed' THEN o.total_amount END), 0) as completed_amount,
+			COALESCE(SUM(CASE WHEN s.status_name = 'pending' THEN o.total_amount END), 0) as pending_amount,
+			COALESCE(SUM(CASE WHEN s.status_name = 'cancelled' THEN o.total_amount END), 0) as cancelled_amount
+		FROM users u
+		LEFT JOIN orders o ON u.id = o.user_id
+		LEFT JOIN status_order s ON o.status_id = s.id
+		WHERE u.id = $1
+		GROUP BY u.id, u.name
+	`
+
+	var summary entity.UserOrderSummary
+	err := r.DB.QueryRow(query, userID).Scan(
+		&summary.UserName,
+		&summary.TotalOrders,
+		&summary.PendingOrders,
+		&summary.CompletedOrders,
+		&summary.CancelledOrders,
+		&summary.TotalAmount,
+		&summary.CompletedAmount,
+		&summary.PendingAmount,
+		&summary.CancelledAmount,
+	)
+	if err != nil {
+		return summary, fmt.Errorf("error querying user order summary: %w", err)
+	}
+
+	return summary, nil
+}
+
+// GetUserOrderSummaryByName mendapatkan ringkasan pesanan user berdasarkan nama dengan breakdown status
+func (r *ReportRepo) GetUserOrderSummaryByName(userName string) (entity.UserOrderSummary, error) {
+	query := `
+		SELECT 
+			u.name,
+			COUNT(o.id) as total_orders,
+			COUNT(CASE WHEN s.status_name = 'pending' THEN 1 END) as pending_orders,
+			COUNT(CASE WHEN s.status_name = 'completed' THEN 1 END) as completed_orders,
+			COUNT(CASE WHEN s.status_name = 'cancelled' THEN 1 END) as cancelled_orders,
+			COALESCE(SUM(o.total_amount), 0) as total_amount,
+			COALESCE(SUM(CASE WHEN s.status_name = 'completed' THEN o.total_amount END), 0) as completed_amount,
+			COALESCE(SUM(CASE WHEN s.status_name = 'pending' THEN o.total_amount END), 0) as pending_amount,
+			COALESCE(SUM(CASE WHEN s.status_name = 'cancelled' THEN o.total_amount END), 0) as cancelled_amount
+		FROM users u
+		LEFT JOIN orders o ON u.id = o.user_id
+		LEFT JOIN status_order s ON o.status_id = s.id
+		WHERE LOWER(u.name) LIKE LOWER($1)
+		GROUP BY u.id, u.name
+		LIMIT 1
+	`
+
+	var summary entity.UserOrderSummary
+	err := r.DB.QueryRow(query, "%"+userName+"%").Scan(
+		&summary.UserName,
+		&summary.TotalOrders,
+		&summary.PendingOrders,
+		&summary.CompletedOrders,
+		&summary.CancelledOrders,
+		&summary.TotalAmount,
+		&summary.CompletedAmount,
+		&summary.PendingAmount,
+		&summary.CancelledAmount,
+	)
+	if err != nil {
+		return summary, fmt.Errorf("error querying user order summary by name: %w", err)
+	}
+
+	return summary, nil
 }

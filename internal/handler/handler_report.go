@@ -95,8 +95,33 @@ func (h *ReportHandler) ShowUserReport() {
 	}
 
 	table.Render()
-	fmt.Printf("\n> Summary\n")
-	fmt.Printf("%s: %d Orders (Total Rp%.2f)\n", userName, len(orders), totalAmount)
+
+	// Get detailed summary with status breakdown
+	var summary entity.UserOrderSummary
+	switch choice {
+	case 0:
+		var userID int
+		fmt.Sscanf(searchKey, "ID: %d", &userID)
+		summary, err = h.ReportRepo.GetUserOrderSummary(userID)
+	case 1:
+		var userName string
+		fmt.Sscanf(searchKey, "Name: %s", &userName)
+		summary, err = h.ReportRepo.GetUserOrderSummaryByName(userName)
+	}
+
+	if err != nil {
+		fmt.Println("Error getting summary:", err)
+		// Fallback to simple summary
+		fmt.Printf("\n> Summary\n")
+		fmt.Printf("%s: %d Orders (Total Rp%.2f)\n", userName, len(orders), totalAmount)
+	} else {
+		fmt.Printf("\n> Summary\n")
+		fmt.Printf("%s: %d Total Orders\n", summary.UserName, summary.TotalOrders)
+		fmt.Printf("- Pending: %d orders (Rp%.2f)\n", summary.PendingOrders, summary.PendingAmount)
+		fmt.Printf("- Completed: %d orders (Rp%.2f)\n", summary.CompletedOrders, summary.CompletedAmount)
+		fmt.Printf("- Cancelled: %d orders (Rp%.2f)\n", summary.CancelledOrders, summary.CancelledAmount)
+		fmt.Printf("- Total Amount: Rp%.2f\n", summary.TotalAmount)
+	}
 
 	fmt.Print("\nPress ENTER to continue...")
 	fmt.Scanln()

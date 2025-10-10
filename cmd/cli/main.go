@@ -54,13 +54,13 @@ func LoginCLI(db *sql.DB, userHandler *handler.UserHandler) {
 
 		switch i {
 		case 0:
-			// waitEnter()
+			waitEnter()
 			user := userHandler.Login()
 			if user != nil {
 				userHandler.ShowDashboard(user)
 			}
 		case 1:
-			// waitEnter()
+			waitEnter()
 			userHandler.RegisterUserCLI()
 		case 2:
 			fmt.Println("Goodbye!")

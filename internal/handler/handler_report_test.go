@@ -69,6 +69,16 @@ func (m *MockReportRepository) GetAvgOrderValue() (float64, error) {
 	return args.Get(0).(float64), args.Error(1)
 }
 
+func (m *MockReportRepository) GetUserOrderSummary(userID int) (entity.UserOrderSummary, error) {
+	args := m.Called(userID)
+	return args.Get(0).(entity.UserOrderSummary), args.Error(1)
+}
+
+func (m *MockReportRepository) GetUserOrderSummaryByName(userName string) (entity.UserOrderSummary, error) {
+	args := m.Called(userName)
+	return args.Get(0).(entity.UserOrderSummary), args.Error(1)
+}
+
 // TestReportHandler_ShowBestSellingProducts_Success test skenario sukses produk terlaris
 func TestReportHandler_ShowBestSellingProducts_Success(t *testing.T) {
 	mockRepo := new(MockReportRepository)
