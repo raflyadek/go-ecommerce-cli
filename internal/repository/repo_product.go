@@ -100,3 +100,25 @@ func (r *ProductRepository) ShowProductById(id int) (entity.Product, error) {
 
 	return product, err
 }
+
+// ReduceStock reduces the stock of a product by a certain quantity
+func (r *ProductRepository) ReduceStock(productID, quantity int) error {
+	// check current stock
+	var stock int
+	err := r.DB.QueryRow(`SELECT stock FROM products WHERE id = $1`, productID).Scan(&stock)
+	if err != nil {
+		return fmt.Errorf("failed to fetch stock for product ID %d: %w", productID, err)
+	}
+
+	if stock < quantity {
+		return fmt.Errorf("insufficient stock for product ID %d: current stock %d, requested %d", productID, stock, quantity)
+	}
+
+	// update stock
+	_, err = r.DB.Exec(`UPDATE products SET stock = stock - $1 WHERE id = $2`, quantity, productID)
+	if err != nil {
+		return fmt.Errorf("failed to reduce stock for product ID %d: %w", productID, err)
+	}
+
+	return nil
+}

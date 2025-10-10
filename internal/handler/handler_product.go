@@ -204,3 +204,4 @@ func (h *ProductHandler) UpdateProducts() {
 
 	fmt.Println("Success update product!")
 }
+

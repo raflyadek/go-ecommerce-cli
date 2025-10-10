@@ -111,7 +111,7 @@ func (h *ReportHandler) ShowCompletedOrders() {
 		return
 	}
 
-	fmt.Println("\n===== Order Report (Completed Orders) ===== (\"Ctrl+C\" to return to dashboard)")
+	fmt.Println("\n===== Order Report (Completed Orders) =====")
 	fmt.Println()
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -143,7 +143,7 @@ func (h *ReportHandler) ShowCompletedOrders() {
 }
 
 func (h *ReportHandler) ShowStockReport() {
-	fmt.Printf("\n===== Stock Report (Daily Summary) ===== (\"Ctrl+C\" to return to dashboard)\n")
+	fmt.Printf("\n===== Stock Report (Daily Summary) =====\n")
 	fmt.Print("Input Date: ")
 	var dateInput string
 	fmt.Scanln(&dateInput)
