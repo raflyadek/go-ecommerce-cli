@@ -1,19 +1,20 @@
 package handler
 
 import (
-    "bufio"
-    "database/sql"
-    "fmt"
-    "go-ecommerce-cli/internal/entity"
-    "go-ecommerce-cli/internal/repository"
-    "go-ecommerce-cli/pkg/utils"
-    "os"
-    "strings"
-    "syscall"
+	"bufio"
+	"database/sql"
+	"fmt"
+	"go-ecommerce-cli/internal/entity"
+	"go-ecommerce-cli/internal/repository"
+	"go-ecommerce-cli/pkg/utils"
+	"io"
+	"os"
+	"strings"
+	"syscall"
 
-    "golang.org/x/term"
+	"golang.org/x/term"
 
-    "github.com/manifoldco/promptui"
+	"github.com/manifoldco/promptui"
 )
 
 type UserHandler struct {
@@ -22,6 +23,7 @@ type UserHandler struct {
     OrderHandler *OrderHandler
     Reader         *bufio.Reader
     DB             *sql.DB
+    Writer io.Writer
 }
 
 // Tambahkan orderHandler di constructor
@@ -78,29 +80,35 @@ func (h *UserHandler) LoginLogic(email, password string) (*entity.User, error) {
 }
 
 // --- REGISTER USER ---
-func (h *UserHandler) RegisterUserCLI() { 
-    fmt.Println("\n=== REGISTER USER ===") 
-    fmt.Print("Enter name: ") 
-    name, _ := h.Reader.ReadString('\n') 
-    name = strings.TrimSpace(name) 
-    
-    fmt.Print("Enter email: ") 
-    email, _ := h.Reader.ReadString('\n') 
-    email = strings.TrimSpace(email) 
+func (h *UserHandler) RegisterUserCLI() {
+	fmt.Fprintln(h.Writer, "\n=== REGISTER USER ===")
 
-    fmt.Print("Enter password: ") 
-    password, _ := h.Reader.ReadString('\n') 
-    password = strings.TrimSpace(password) 
-    if name == "" || email == "" || password == ""  { 
-        fmt.Println("All fields are required.") 
-        return 
-    } 
-    hashed := utils.HashPassword(password) 
-    err := h.UserRepo.RegisterUser(name, email, hashed) 
-    if err != nil { fmt.Println("Failed to register user:", err) 
-        return 
-    } 
-    fmt.Println("User registered successfully!") }
+	fmt.Fprint(h.Writer, "Enter name: ")
+	name, _ := h.Reader.ReadString('\n')
+	name = strings.TrimSpace(name)
+
+	fmt.Fprint(h.Writer, "Enter email: ")
+	email, _ := h.Reader.ReadString('\n')
+	email = strings.TrimSpace(email)
+
+	fmt.Fprint(h.Writer, "Enter password: ")
+	password, _ := h.Reader.ReadString('\n')
+	password = strings.TrimSpace(password)
+
+	if name == "" || email == "" || password == "" {
+		fmt.Fprintln(h.Writer, "All fields are required.")
+		return
+	}
+
+	hashed := utils.HashPassword(password)
+	err := h.UserRepo.RegisterUser(name, email, hashed)
+	if err != nil {
+		fmt.Fprintln(h.Writer, "Failed to register user:", err)
+		return
+	}
+
+	fmt.Fprintln(h.Writer, "Registration successful")
+}
 
 // --- ADD STAFF (Admin Only) ---
 func (h *UserHandler) AddStaff() { fmt.Println("\n=== ADD STAFF ===") 
